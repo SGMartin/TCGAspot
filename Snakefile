@@ -1,17 +1,22 @@
+configfile: "config.yaml"
 
-rule get_vulcan_database:
+
+rule build_vulcan_database:
 	input:
 	output:
-		"../../GENERATED/TCGA/vulcan_db.tsv"
+		expand("{input_directory}reference/generated/vulcan_db.tsv",
+				input_directory=config['input_directory'])
 	threads: 1
 	script:
 		"./scripts/get_vulcan_database.py"
 
 rule get_snp_array_translation:
 	input:
-		"../../RAW/Databases/affy_SNP6.0_ensg.tsv"
+		expand("{input_directory}reference/affy_SNP6.0_ensg.tsv",
+			   input_directory=config['input_directory'])
 	output:
-		"../../GENERATED/TCGA/affy_snp_6.0_translation.csv"
+		expand("{input_directory}reference/generated/affy_snp_6.0_translation.csv",
+			   input_directory=config['input_directory'])
 	threads:1
 	script:
 		"./scripts/get_affy_translation.py"

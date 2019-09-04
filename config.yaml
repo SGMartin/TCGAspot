@@ -1,0 +1,3 @@
+# input directory. All input files will be relative to this #
+input_directory : '/home/sagarcia/Documents/TFM/RAW/testing/'
+projects : projects.tsv
