@@ -2,62 +2,62 @@
 rule get_vulcan_database:
 	input:
 	output:
-		"../GENERATED/TCGA/vulcan_db.tsv"
+		"../../GENERATED/TCGA/vulcan_db.tsv"
 	threads: 1
 	script:
-		"./TCGA/get_vulcan_database.py"
+		"./scripts/get_vulcan_database.py"
 
 rule get_snp_array_translation:
 	input:
-		"../RAW/Databases/affy_SNP6.0_ensg.tsv"
+		"../../RAW/Databases/affy_SNP6.0_ensg.tsv"
 	output:
-		"..GENERATED/TCGA/affy_snp_6.0_translation.csv"
+		"../../GENERATED/TCGA/affy_snp_6.0_translation.csv"
 	threads:1
 	script:
-		"./TCGA/get_affy_translation.py"
+		"./scripts/get_affy_translation.py"
 
 rule filter_maf:
 	input: 
-		raw_maf  = "../RAW/PAN-TCGA/MAF/COAD/{maf}.maf"
+		raw_maf  = "../../RAW/PAN-TCGA/MAF/COAD/{maf}.maf"
 	output:
-		filtered = "../GENERATED/TCGA/MAF/COAD/{maf}_filtered.csv",
-		metrics  = "../GENERATED/TCGA/MAF/COAD/{maf}_filtered_metrics.csv"
+		filtered = "../../GENERATED/TCGA/MAF/COAD/{maf}_filtered.csv",
+		metrics  = "../../GENERATED/TCGA/MAF/COAD/{maf}_filtered_metrics.csv"
 	threads: 1
 	shell:
-		"./TCGA/maf_filter.py {input.raw_maf} {output.filtered} {output.metrics}"
+		"./scripts/maf_filter.py {input.raw_maf} {output.filtered} {output.metrics}"
 
 rule filter_cnv:
 	input:
-		cnv 	 = "../RAW/PAN-TCGA/CNV/COAD/{cnv}.txt",
-		metadata = "../RAW/PAN-TCGA/METADATA/cnv_metadata.json",
-		affy_db  = "../GENERATED/TCGA/affy_snp_6.0_translation.csv"
+		cnv 	 = "../../RAW/PAN-TCGA/CNV/COAD/{cnv}.txt",
+		metadata = "../../RAW/PAN-TCGA/METADATA/cnv_metadata.json",
+		affy_db  = "../../GENERATED/TCGA/affy_snp_6.0_translation.csv"
 	
 	output:
-		filtered_cnv = "../GENERATED/TCGA/CNV/COAD/{cnv}_filtered.csv",
-		metrics 	 = "../gENERATED/TCGA/CNV/COAD/{cnv}_metrics.csv"
+		filtered_cnv = "../../GENERATED/TCGA/CNV/COAD/{cnv}_filtered.csv",
+		metrics 	 = "../../GENERATED/TCGA/CNV/COAD/{cnv}_metrics.csv"
 	
 	threads:1
 	shell:
-		"./TCGA/cnv_filter.py {input.cnv} {input.metadata} {input.affy_db} {output.filtered_cnv} {output.metrics}"	
+		"./scripts/cnv_filter.py {input.cnv} {input.metadata} {input.affy_db} {output.filtered_cnv} {output.metrics}"	
 
 rule filter_annotated_cases:
 	input:
-		maf   = "../GENERATED/TCGA/MAF/COAD/{maf}_filtered.csv",
-		annot = "../RAW/PAN-TCGA/MAF/COAD/annotations.txt"
+		maf   = "../../GENERATED/TCGA/MAF/COAD/{maf}_filtered.csv",
+		annot = "../../RAW/PAN-TCGA/MAF/COAD/annotations.txt"
 	output:
-		cases   = "../GENERATED/TCGA/MAF/COAD/{maf}_filtered_cases.csv",
-		metrics = "../GENERATED/TCGA/MAF/COAD/{maf}_filtered_metrics.csv"
+		cases   = "../../GENERATED/TCGA/MAF/COAD/{maf}_filtered_cases.csv",
+		metrics = "../../GENERATED/TCGA/MAF/COAD/{maf}_filtered_metrics.csv"
 	threads:1
 	shell:
-		"./TCGA/filter_excluded_cases.py {input.maf} {input.annot} {output.cases} {output.metrics}"
+		"./scripts/filter_excluded_cases.py {input.maf} {input.annot} {output.cases} {output.metrics}"
 
 rule filter_annotated_cases_2:
 	input:
-		maf   = "../GENERATED/TCGA/CNV/COAD/{maf}_filtered.csv",
-		annot = "../RAW/PAN-TCGA/CNV/COAD/annotations.txt"
+		maf   = "../../GENERATED/TCGA/CNV/COAD/{maf}_filtered.csv",
+		annot = "../../RAW/PAN-TCGA/CNV/COAD/annotations.txt"
 	output:
-		cases   = "../GENERATED/TCGA/CNV/COAD/{maf}_filtered_cases.csv",
-		metrics = "../GENERATED/TCGA/CNV/COAD/{maf}_filtered_metrics.csv"
+		cases   = "../../GENERATED/TCGA/CNV/COAD/{maf}_filtered_cases.csv",
+		metrics = "../../GENERATED/TCGA/CNV/COAD/{maf}_filtered_metrics.csv"
 	threads:1
 	shell:
-		"./TCGA/filter_excluded_cases.py {input.maf} {input.annot} {output.cases} {output.metrics}"
+		"./scripts/filter_excluded_cases.py {input.maf} {input.annot} {output.cases} {output.metrics}"
