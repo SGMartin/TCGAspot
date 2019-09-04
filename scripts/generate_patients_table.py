@@ -1,113 +1,56 @@
+#!/usr/bin/env python3
 """
 Section: SL in TCGA data
 
 Purpose: Generate a table of genetic alterations based on CNV and MAF data
 from the TCGA. Patients genetic landscape is inferred from these sources.
 """
+import sys
 
 import pandas as pd
 
 
-def main():
+def main(input_maf:str, input_cnv:str, cancer_census:str, context_translation:str):
 
-	# ---------- SNAKEMAKE INPUT ----------- #
-	input_maf         = snakemake.input[0]
-	input_cnv         = snakemake.input[1]
-	input_notation    = snakemake.input[2]
+	# Loading input dataframes #
+	maf_to_merge = pd.read_csv(input_maf, sep=',', low_memory=False)
+	cnv_to_merge = pd.read_csv(input_cnv, sep=',', low_memory=False)
 
-	# ---------- SNAKEMAKE OUTPUT ---------- #
-	valid_maf_patients = snakemake.output[0]
-	valid_cnv_patients = snakemake.output[1]
-	combined_maf_cnv   = snakemake.output[2]
-	metrics_report 	   = snakemake.output[3]
-    # --------------------------------------- #
+	merged_alterations = merge_cnv_to_mutations(maf_to_merge, cnv_to_merge)
 
-	mutation_data   = pd.read_csv(input_maf, sep='\t')
-	cnv_data        = pd.read_csv(input_cnv, sep='\t')
-	annotations     = pd.read_csv(input_notation, sep='\t')
+	# Annotate with CGC and translate projects to CCLE tissues
 
-	invalid_cases   = annotations['entity_id']
+	annotated_tcga			 = annotate_cancer_gene_census(cancer_census,
+												   annotated_alterations)
 
-	# ------ FILTERING ---------# #TODO: Refactor these
-	filtered_maf = filter_maf_patients(mutation_data, invalid_cases)
-	filtered_cnv = filter_cnv_patients(cnv_data, invalid_cases)
+	context_translated_tcga  = translate_tcga_ccle_tissues(context_translation,
+														   annotated_tcga
+														  )
 
-	filtered_maf.to_csv(valid_maf_patients, sep='\t', index=False)
-	filtered_cnv.to_csv(valid_cnv_patients, sep='\t', index=False)
-
-	# --------- MERGING --------#
-	merged_maf_cnv = merge_cnv_to_mutations(filtered_maf, cnv_data)
-	merged_maf_cnv.to_csv(combined_maf_cnv, sep='\t', index=False)
-
-	# ------- Report metrics --------- #
-	raw_maf_patients 				= mutation_data['case_id'].nunique()
-	filtered_maf_patients			= filtered_maf['case_id'].nunique()
-	raw_cnv_patients				= len(cnv_data.columns)
-	filtered_cnv_patients			= len(filtered_cnv.columns)
-
-	raw_cnv_patients -=1 		# accounting for gene column
-	filtered_cnv_patients -=1
+	# Classify alterations in GoF/LoF/Unknown
+	context_translated_tcga['Consequence'] = context_translated_tcga.apply(func=annotate_gof_lof,
+																		   axis='columns'
+																		   )
 	
-	report = {'Item':['maf_cases', 'maf_cases_filtered', 'cnv_cases', 'cnv_filtered'],
-			  'Count':[raw_maf_patients, filtered_maf_patients, raw_cnv_patients, filtered_cnv_patients]
-			 }
-	
-	report = pd.DataFrame(report).to_csv(metrics_report, sep='\t')
+	# clean inconsistent alterations
+	tcga_func_annotated = delete_inconsistent_alterations(context_translated_tcga)
 
-def filter_maf_patients(mutations: pd.DataFrame, invalid_cases ) -> pd.DataFrame:
-	"""
-	Remove patients whose id is present in annotation file.
-	"""
-	cases_to_remove = mutations['case_id'].isin(invalid_cases)
+	# SAVING #
 
-	# keep cases whose id is not in annotation.txt
-	mutations = mutations[~cases_to_remove]
-
-	return mutations
-
-def filter_cnv_patients(cnv: pd.DataFrame, invalid_cases: pd.Series) -> pd.DataFrame:
-	'''
-	Remove patients whose id is present in annotation
-	'''	
-	# remember that multiple sample cases are duplicated
-	filtered_cnv = cnv[cnv.columns.difference(invalid_cases)]
-
-	return filtered_cnv
-
-# TODO: consider spliting this method in two.
 def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Merges maf and cnv together by outer join and then fills missing rows
+	with None instead of NaN.
+	'''
 
-	"""
-	Merges cnv and mutations together in a single dataframe. Replaces
-	GISTIC-2 gene level copy number scores with cnv_gain for +1 and cnv_loss
-	for -1"
-	"""
-   # melting transforms a wide DF to a LONG format
-	filtered_cnv = pd.melt(frame=cnv,
-	                       id_vars=['Gene Symbol'],
-						   var_name='case_id',
-						   value_name='copy_number'
-						)
-	
-	# drop neutrals and rename
-	filtered_cnv = filtered_cnv[filtered_cnv.loc[:,'copy_number'] != 0]
-
-	gain_and_loss = {1: 'cnv_gain', -1: 'cnv_loss'}
-	filtered_cnv = filtered_cnv.replace({'copy_number' : gain_and_loss})
-
-	filtered_cnv.rename(
-						{'Gene Symbol':'Hugo_Symbol'},
-	 					axis='columns',
-						inplace=True
-					   )
-					
-	# merge both dataframes
 	merged_maf_cnv =  maf.merge(
-							right=filtered_cnv,
+							right=cnv,
 					        how='outer',
 						    left_on=['case_id', 'Hugo_Symbol'],
-							right_on=['case_id', 'Hugo_Symbol']
+							right_on=['case_id', 'Gene Symbol']
 							)
+	
+	merged_maf_cnv.drop('Gene Symbol', axis=1, inplace=True)
 	
 	# Fill NaN in Project column for cnv
 	cases_projects = maf.loc[:,['case_id', 'Project']]
@@ -123,6 +66,101 @@ def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame
 
 	return merged_maf_cnv
 
+def annotate_cancer_gene_census(cancer_census, tcga_data) -> pd.DataFrame:
+	"""
+	Annotate roles based on cancer gene census.
+	"""
+	cancer_gene_census = pd.read_csv(cancer_census,
+									 sep='\t',
+									 usecols=['Gene Symbol', 'Role in Cancer']
+								    )
+
+	annotated_mutations = pd.read_csv(tcga_data, sep='\t', low_memory=False)
+	
+	cancer_gene_census['Role in Cancer'].fillna(value='None', inplace=True)
+	cancer_gene_census = cancer_gene_census.set_index('Gene Symbol')['Role in Cancer'].to_dict()
+
+	annotated_mutations['Role'] = annotated_mutations['Hugo_Symbol'].map(cancer_gene_census)
+	annotated_mutations['Role'].fillna(value='None', inplace=True)
+	
+	del cancer_gene_census
+	return annotated_mutations
+
+
+def translate_tcga_ccle_tissues(context_translation: str,
+								tcga_data: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Translates from TCGA project names to the most suitable VulcanSpot context
+	based on an external equivalence table built manually.
+	'''
+	context_translation = pd.read_csv(context_translation, sep='\t')
+	context_translation = context_translation.set_index('TCGA')['Vulcanspot'].to_dict()
+
+	tcga_data['Context']      = tcga_data['Project'].map(context_translation)
+
+	return tcga_data
+
+
+def annotate_gof_lof(tcga_data: pd.Series) -> str:
+	'''
+	Uses Variant_Classification columns, copy number column when available
+	and VAF to predict alteration consequence based on VulcanSpot criteria.
+	Returns a dataframe where all alterations are classified either in GoF,
+	LoF or Unknown.
+	'''
+
+	truncated_protein = ['De_novo_Start_OutOfFrame', 'Frame_Shift_Del',
+						 'Frame_Shift_Ins', 'In_Frame_Del','In_Frame_Ins',
+						 'Nonsense_Mutation', 'Nonstop_Mutation', 'Splice_Site',
+						 'Start_Codon_Del', 'Start_Codon_Ins',
+						 'Stop_Codon_Del', 'Stop_Codon_Ins'
+						]
+	
+	is_truncated = tcga_data['Variant_Classification'] in truncated_protein
+	is_missense  = tcga_data['Variant_Classification'] == 'Missense_Mutation'
+	has_cnv 	 = tcga_data['copy_number'] != 'None'
+	is_oncogene  = 'oncogene' in tcga_data['Role']
+
+	result = 'Unknown'
+
+	if has_cnv:
+		if tcga_data['copy_number'] == 'cnv_loss':
+			result = 'LoF'
+
+		else: # might be a GoF, check for somatic point mutations
+			if (is_truncated == False) & (is_missense == False):
+				result = 'GoF'
+			else:
+				result = 'LoF'
+	else:
+		if is_truncated  & (tcga_data['VAF'] >= 0.7):
+			result = 'LoF'
+		
+		if is_missense:
+			if is_oncogene & (tcga_data['VAF'] >= 0.2):
+				result = 'GoF'
+			else:
+				if tcga_data['VAF'] >= 0.7:
+					result = 'LoF'
+
+	return result
+
+
+def delete_inconsistent_alterations(tcga_data: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Delete rows where a GoF was predicted on a gene annotated as tumor suppressor
+	gene. These although rare (<1%) might happen due to how TCGA GISTIC-2 data
+	was generated.
+	'''
+
+	is_GoF = tcga_data['Consequence'] == 'GoF'
+	is_TSG = tcga_data['Role'].str.contains('TSG')
+
+	tcga_cleared = tcga_data[~(is_GoF & is_TSG)]
+
+	return tcga_cleared
+
+
 
 if __name__ == "__main__":
-	main()
+	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])

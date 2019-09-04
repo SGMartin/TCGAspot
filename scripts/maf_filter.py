@@ -85,8 +85,6 @@ def filter_quality_variants(mutationData: pd.DataFrame) -> pd.DataFrame:
 	Filters variants based on alteration consequence and sequencing depth.
 	Returns a dataframe with coding only alterations with sufficient ( > 30) 
 	depth.
-
-	:param mutationData: raw pandas dataframe to filter
 	"""
 
 	# drop non coding, intronic and silent mutations

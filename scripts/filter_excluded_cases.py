@@ -32,7 +32,8 @@ def main(rdata, annot, save_as, metrics_save_as):
 
 def load_excluded_cases(input_annotation: str) -> pd.DataFrame:
 	'''Loads annotations.txt file for this project and returns a dataframe
-		of excluded cases id.
+		of excluded cases id. Cases/Items in annotations.txt are spared
+		in certain cases based on notification category.
 	'''
 
 	categories_to_keep = ['History of acceptable prior treatment related to a prior/other malignancy',
@@ -53,6 +54,9 @@ def load_excluded_cases(input_annotation: str) -> pd.DataFrame:
 
 def generate_report(r_alterations: pd.DataFrame, 
 					c_alterations: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Generates some metrics for logging.
+	'''
 	
 	raw_cases 		= r_alterations['case_id'].nunique()
 	raw_alterations = len(r_alterations.index)

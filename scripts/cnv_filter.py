@@ -40,7 +40,7 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 def annotate_from_ensembl_to_hugo(cnv: pd.DataFrame, db: str) -> pd.DataFrame:
 	'''
 	Using a pregenerated, translated file, it matches SNP ENSEMBL values to
-	MyGene HUGO values and gets rids of unmapped regions
+	MyGene HUGO values and gets rids of unmapped regions.
 	'''
 
 	# Load the database
@@ -62,7 +62,7 @@ def annotate_from_ensembl_to_hugo(cnv: pd.DataFrame, db: str) -> pd.DataFrame:
 def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
 	'''
 	Reshapes cnv files to a long format, using Gene symbol as id and then
-	drop neutral cnv values
+	drop neutral cnv values.
 	'''
 	reshaped_cnv = pd.melt(frame=cnv,
 	                       id_vars=['Gene Symbol'],
@@ -80,7 +80,6 @@ def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
 
 def match_cases_to_samples(input_cnv: pd.DataFrame,
 						   metadata: str) -> pd.DataFrame:
-
 	'''
 	Translates samples ID to case UUID using metadata. Observations are
 	named after alliquots. We have to rename them using the corresponding
