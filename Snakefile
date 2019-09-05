@@ -1,26 +1,46 @@
 configfile: "config.yaml"
 
 
-rule build_vulcan_database:
+
+# Global scope functions
+
+#TODO: log the key error
+def get_resource(rule,resource):
+	'''
+	Attempt to parse config.yaml to retrieve resources available for each rule.
+	It will revert to default is a key error is found.
+	'''
+	try:
+		return config["rules"][rule]["res"][resource]
+	except KeyError:
+		return config["rules"]["default"]["res"][resource]
+
+rule rebuild_vulcan_database:
 	input:
 	output:
-		expand("{input_directory}reference/generated/vulcan_db.tsv",
-				input_directory=config['input_directory'])
-	threads: 1
+		"reference/generated/vulcan_db.csv"
+	threads: 
+		get_resource('rebuild_vulcan_database', 'threads')
+	resources:
+		mem=get_resource('rebuild_vulcan_database', 'mem')
 	script:
 		"./scripts/get_vulcan_database.py"
 
-rule get_snp_array_translation:
+rule rebuild_snp_array_translation:
 	input:
-		expand("{input_directory}reference/affy_SNP6.0_ensg.tsv",
-			   input_directory=config['input_directory'])
+		"reference/affy_SNP6.0_ensg.tsv"
 	output:
-		expand("{input_directory}reference/generated/affy_snp_6.0_translation.csv",
-			   input_directory=config['input_directory'])
-	threads:1
+		"reference/generated/affy_snp_6.0_translation.csv"
+	threads:
+		get_resource('rebuild_snp_array_translation', 'threads')
+	resources:
+		mem=get_resource('rebuild_snp_array_translation', 'mem')
 	script:
 		"./scripts/get_affy_translation.py"
 
+
+
+'''
 rule filter_maf:
 	input: 
 		raw_maf  = "../../RAW/PAN-TCGA/MAF/COAD/{maf}.maf"
@@ -66,3 +86,4 @@ rule filter_annotated_cases_2:
 	threads:1
 	shell:
 		"./scripts/filter_excluded_cases.py {input.maf} {input.annot} {output.cases} {output.metrics}"
+'''

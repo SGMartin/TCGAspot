@@ -13,7 +13,7 @@ def main():
 	where_to_save = snakemake.output[0]
 
 	v_table = build_vulcan_database()
-	v_table.to_csv(where_to_save, sep='\t', index=False)
+	v_table.to_csv(where_to_save, sep=',', index=False)
 
 
 def build_vulcan_database() -> pd.DataFrame:

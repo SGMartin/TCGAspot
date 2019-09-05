@@ -1,3 +1,26 @@
 # input directory. All input files will be relative to this #
 input_directory : '/home/sagarcia/Documents/TFM/RAW/testing/'
 projects : projects.tsv
+
+rules:
+    default:
+        res:
+            threads: 1
+            mem:  2048
+
+    # These rules are using python3 pandas vector operations, which are
+    # single threaded. There is no advantage to more threads. Memory can
+    # be tweaked though.
+    
+    rebuild_vulcan_database:    # Requires internet connection
+        threads: 1
+        mem:  2048
+    rebuild_snp_array_translation: # Requires internet connection
+        threads: 1
+        mem: 2048
+    filter_maf: 
+        threads: 1 
+        mem: 2048
+    filter_cnv:
+        threads: 1
+        mem: 2048
