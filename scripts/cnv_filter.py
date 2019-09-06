@@ -7,6 +7,7 @@ patients genomic data.
 """
 
 import json
+import os
 import sys
 
 import mygene
@@ -29,6 +30,15 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 	translated_cnv = annotate_from_ensembl_to_hugo(raw_cnv, affy_db)
 	filtered_cnv   = filter_cnv(translated_cnv)
 	annotated_cnv  = match_cases_to_samples(filtered_cnv, metadata)
+
+	# Check if annotations.txt is present
+	# TODO: Log this
+	input_cnv_directory = os.path.dirname(rcnv)
+	annotation_file     = input_cnv_directory + '/annotations.txt'
+
+	if(os.path.exists(annotation_file)):
+		annotated_cnv= exclude_annotated_cases(annotated_cnv, annotation_file)
+
 
 	report_metrics = generate_report_metrics(raw_cnv, annotated_cnv)
 
@@ -105,6 +115,30 @@ def match_cases_to_samples(input_cnv: pd.DataFrame,
 	
 	return input_cnv
 
+def exclude_annotated_cases(rcnv: pd.DataFrame, annotations: str) -> pd.DataFrame:
+	''' 
+		Loads annotations.txt file for this project and returns a dataframe of
+		excluded cases id. Cases/Items in annotations.txt are spared
+		in certain cases based on notification category.
+	'''
+	cases_to_exclude = pd.read_csv(annotations,
+								   sep='\t',
+								   usecols=['entity_id', 'category']
+								   )
+
+	categories_to_keep = ['History of acceptable prior treatment related to a prior/other malignancy',
+						  'Acceptable treatment for TCGA tumor',
+						  'Alternate sample pipeline'
+						 ]
+	
+	acceptable_alterations = cases_to_exclude['category'].isin(categories_to_keep)
+	cases_to_exclude   	   = cases_to_exclude[~acceptable_alterations]
+
+	excluded_cases   = rcnv['case_id'].isin(cases_to_exclude['entity_id'])
+	filtered_cnv	 = rcnv[~excluded_cases]
+
+	return filtered_cnv
+
 def generate_report_metrics(rcnv: pd.DataFrame, acnv: pd.DataFrame) -> pd.DataFrame:
 	'''
 	Generates some metrics for each step performed. These are later saved
@@ -135,4 +169,4 @@ def generate_report_metrics(rcnv: pd.DataFrame, acnv: pd.DataFrame) -> pd.DataFr
 	return report
 
 if __name__ == "__main__":
-	main(sys.arv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])

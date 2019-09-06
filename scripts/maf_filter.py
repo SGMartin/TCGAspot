@@ -22,6 +22,14 @@ def main(input_maf:str, alterations_save_as:str, metrics_save_as:str):
 	mutation_data = load_dataframe(raw_mutation_data)
 	filtered_maf  = filter_quality_variants(mutation_data)
 
+	# Check if there is an annotations.txt file present nearby
+	# TODO: Log this
+	input_maf_directory = os.path.dirname(input_maf)
+	annotation_file     = input_maf_directory + '/annotations.txt'
+
+	if(os.path.exists(annotation_file)):
+		filtered_maf = exclude_annotated_cases(filtered_maf, annotation_file)
+
 	# SAVE OUTPUT #
 	filtered_maf.to_csv(where_to_save, sep=',', index=False)
 	
@@ -88,16 +96,15 @@ def filter_quality_variants(mutationData: pd.DataFrame) -> pd.DataFrame:
 	"""
 
 	# drop non coding, intronic and silent mutations
-    # https://github.com/mskcc/vcf2maf/issues/88
 	not_relevant = ["3'UTR", "5'UTR", "Intron", "RNA", "3'Flank", 
-					"5'Flank", "Translation_Start_Site", "IGR", "Silent",
-					"Splice_Region"
-				    ]
+					"5'Flank", "Translation_Start_Site", "IGR", "Silent"
+				   ]
 	
 	mutationData = mutationData[~mutationData['Variant_Classification'].isin(not_relevant)]
 
 	# drop remaining non-exonic mutations
-	# TODO: look above link and "Splice_region" stuff
+	# look https://github.com/mskcc/vcf2maf/issues/88 for more info about this
+	# step
 	is_intronic  = mutationData['Consequence'] == 'intron_variant'
 	mutationData = mutationData[~is_intronic]
 
@@ -111,15 +118,41 @@ def filter_quality_variants(mutationData: pd.DataFrame) -> pd.DataFrame:
 	# Drop entries with VAF < 0.2. Vulcan requires this
 	mutationData = mutationData[mutationData['VAF'] >= 0.2]
 
-	# Drop depth columns
+	# Drop unused columns
 
 	mutationData.drop(
-					labels=["t_depth", "n_depth", "t_ref_count", "t_alt_count"],
+					labels=["t_depth", "n_depth", "t_ref_count",
+							"t_alt_count", 'Consequence'],
 					axis='columns',
 					inplace=True
 					 )
 
 	return mutationData
+
+#TODO: make this customizable
+def exclude_annotated_cases(maf: pd.DataFrame, annotations: str) -> pd.DataFrame:
+	'''
+		Loads annotations.txt file for this project and returns a dataframe
+		of excluded cases id. Cases/Items in annotations.txt are spared	in 
+		certain cases based on notification category.
+	'''
+	cases_to_exclude = pd.read_csv(annotations,
+								   sep='\t',
+								   usecols=['entity_id', 'category']
+								   )
+
+	categories_to_keep = ['History of acceptable prior treatment related to a prior/other malignancy',
+						  'Acceptable treatment for TCGA tumor',
+						  'Alternate sample pipeline'
+						 ]
+	
+	acceptable_alterations = cases_to_exclude['category'].isin(categories_to_keep)
+	cases_to_exclude   	   = cases_to_exclude[~acceptable_alterations]
+
+	excluded_cases   = maf['case_id'].isin(cases_to_exclude['entity_id'])
+	filtered_maf	 = maf[~excluded_cases]
+
+	return filtered_maf
 
 if __name__ == "__main__":
 	main(sys.argv[1], sys.argv[2], sys.argv[3])

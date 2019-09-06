@@ -1,6 +1,6 @@
-# input directory. All input files will be relative to this #
-input_directory : '/home/sagarcia/Documents/TFM/RAW/testing/'
-projects : projects.tsv
+inputdir : '/home/sagarcia/Documents/TFM/RAW/testing'         # Where to look for said projects
+outdir   : '/home/sagarcia/Documents/TFM/GENERATED/TCGA'       # Where to save resutls
+logdir   : 'log/test'                                          # Where to save events log.
 
 rules:
     default:
@@ -11,16 +11,19 @@ rules:
     # These rules are using python3 pandas vector operations, which are
     # single threaded. There is no advantage to more threads. Memory can
     # be tweaked though.
-    
+
     rebuild_vulcan_database:    # Requires internet connection
         threads: 1
         mem:  2048
-    rebuild_snp_array_translation: # Requires internet connection
+    rebuild_snp_array_dictionary: # Requires internet connection
         threads: 1
         mem: 2048
-    filter_maf: 
+    filter_maf_files: 
         threads: 1 
         mem: 2048
-    filter_cnv:
+    filter_cnv_files:
+        threads: 1
+        mem: 2048
+    generate_cases_table:
         threads: 1
         mem: 2048

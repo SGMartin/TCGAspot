@@ -10,39 +10,51 @@ import sys
 import pandas as pd
 
 
-def main(input_maf:str, input_cnv:str, cancer_census:str, context_translation:str):
+def main(input_maf:str, input_cnv:str, cancer_census:str, 
+	     context_translation:str, where_to_save: str, where_to_save_metrics:str):
 
 	# Loading input dataframes #
-	maf_to_merge = pd.read_csv(input_maf, sep=',', low_memory=False)
-	cnv_to_merge = pd.read_csv(input_cnv, sep=',', low_memory=False)
+	maf_to_merge = pd.read_csv(input_maf,
+							   sep=',',
+							   usecols=['Hugo_Symbol', 'Variant_Classification',
+							   			'VAF', 'case_id',
+										'Project'],
+							   low_memory=False
+							   )
+
+	cnv_to_merge = pd.read_csv(input_cnv,
+							   sep=',',
+							   usecols=['Gene Symbol', 'case_id', 'copy_number'],
+							   low_memory=False
+							   )
 
 	merged_alterations = merge_cnv_to_mutations(maf_to_merge, cnv_to_merge)
 
 	# Annotate with CGC and translate projects to CCLE tissues
-
 	annotated_tcga			 = annotate_cancer_gene_census(cancer_census,
-												   annotated_alterations)
-
+												   	       merged_alterations
+														   )
 	context_translated_tcga  = translate_tcga_ccle_tissues(context_translation,
 														   annotated_tcga
 														  )
-
 	# Classify alterations in GoF/LoF/Unknown
 	context_translated_tcga['Consequence'] = context_translated_tcga.apply(func=annotate_gof_lof,
 																		   axis='columns'
 																		   )
-	
 	# clean inconsistent alterations
 	tcga_func_annotated = delete_inconsistent_alterations(context_translated_tcga)
 
 	# SAVING #
+	tcga_func_annotated.to_csv(where_to_save, sep=',', index=False)
+	
+	# METRICS #
+	metrics = generate_metrics(merged_alterations, tcga_func_annotated)
 
 def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame:
 	'''
 	Merges maf and cnv together by outer join and then fills missing rows
 	with None instead of NaN.
 	'''
-
 	merged_maf_cnv =  maf.merge(
 							right=cnv,
 					        how='outer',
@@ -66,25 +78,24 @@ def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame
 
 	return merged_maf_cnv
 
-def annotate_cancer_gene_census(cancer_census, tcga_data) -> pd.DataFrame:
+def annotate_cancer_gene_census(cancer_census, merged_alterations) -> pd.DataFrame:
 	"""
 	Annotate roles based on cancer gene census.
 	"""
+	
 	cancer_gene_census = pd.read_csv(cancer_census,
 									 sep='\t',
 									 usecols=['Gene Symbol', 'Role in Cancer']
 								    )
-
-	annotated_mutations = pd.read_csv(tcga_data, sep='\t', low_memory=False)
 	
 	cancer_gene_census['Role in Cancer'].fillna(value='None', inplace=True)
 	cancer_gene_census = cancer_gene_census.set_index('Gene Symbol')['Role in Cancer'].to_dict()
 
-	annotated_mutations['Role'] = annotated_mutations['Hugo_Symbol'].map(cancer_gene_census)
-	annotated_mutations['Role'].fillna(value='None', inplace=True)
+	merged_alterations['Role'] = merged_alterations['Hugo_Symbol'].map(cancer_gene_census)
+	merged_alterations['Role'].fillna(value='None', inplace=True)
 	
 	del cancer_gene_census
-	return annotated_mutations
+	return merged_alterations
 
 
 def translate_tcga_ccle_tissues(context_translation: str,
@@ -160,7 +171,45 @@ def delete_inconsistent_alterations(tcga_data: pd.DataFrame) -> pd.DataFrame:
 
 	return tcga_cleared
 
+#TODO: This could be refactored taking into account the above method.
+
+def generate_metrics(raw_tcga_data: pd.DataFrame,
+			         clean_tcga_data: pd.DataFrame) -> pd.DataFrame:
+	
+	'''
+	Generates metrics for this step. Returns a dataframe of cases and alterations
+	count, both before and after filtering.
+	'''
+	
+	# count inconsistent alterations
+	is_GoF = raw_tcga_data['Consequence'] == 'GoF'
+	is_TSG = raw_tcga_data['Role'].str.contains('TSG')
+
+	raw_inconsistent_alterations = len(raw_tcga_data[(is_GOF & is_TSG)].index)
+	raw_merged_alterations		 = len(raw_tcga_data.index)
+	filtered_merged_alterations  = len(clean_tcga_data.index)
+
+	raw_merged_cases       = raw_tcga_data['case_id'].nunique()
+	raw_inconsistent_cases = raw_tcga_data[(is_GOF & is_TSG)]['case_id'].nunique()
+	filtered_merged_cases  = clean_tcga_data['case_id'].nunique()
+
+	report = {'Item':['merged_cases', 'merged_alterations',
+					  'inconsistent_cases', 'inconsistent_alterations',
+					  'filtered_cases', 'filtered_alterations'
+					 ],
+			  'Count':[raw_merged_cases, raw_merged_alterations,
+			   		   raw_inconsistent_cases, raw_inconsistent_alterations,
+			  		   filtered_merged_cases, filtered_merged_alterations
+					  ]
+			 }
+
+	report = pd.DataFrame(report)
+	
+	return report
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+	main(
+	     sys.argv[1], sys.argv[2], sys.argv[3],
+		 sys.argv[4], sys.argv[5], sys.argv[6]
+		 )
