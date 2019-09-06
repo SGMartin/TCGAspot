@@ -34,8 +34,10 @@ def annotate_vulcan_data(vulcan_table: str,
 
 	# Load available genes in vulcanSpot
 	vulcan_genes = pd.read_csv(vulcan_table,
-							   sep='\t',
-							   usecols=['geneA', 'tissue', 'alteration'])
+							   sep=',',
+							   usecols=['geneA', 'tissue', 'alteration'],
+							   low_memory=False
+							   ) 
 
 	vulcan_genes.drop_duplicates(keep='first', inplace=True)
 	

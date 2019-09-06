@@ -1,4 +1,5 @@
-inputdir : '/home/sagarcia/Documents/TFM/RAW/testing'         # Where to look for said projects
+projects : 'projects.tsv'                                      # TCGA projects to parse
+inputdir : '/home/sagarcia/Documents/TFM/RAW/testing'          # Where to look for said projects
 outdir   : '/home/sagarcia/Documents/TFM/GENERATED/TCGA'       # Where to save resutls
 logdir   : 'log/test'                                          # Where to save events log.
 
@@ -25,5 +26,8 @@ rules:
         threads: 1
         mem: 2048
     generate_cases_table:
+        threads: 1
+        mem: 2048
+    vulcanspot_annotation:
         threads: 1
         mem: 2048

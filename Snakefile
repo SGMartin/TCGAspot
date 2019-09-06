@@ -10,12 +10,9 @@ configfile: "config.yaml"
 INDIR 		   = config['inputdir']
 OUTDIR  	   = config['outdir']
 LOGDIR   	   = config['logdir']
-
-PROJECT,MAF,  = glob_wildcards(f'{INDIR}/MAF/' + '{project}/{maf}.maf')
-CPROJECT,CNV, = glob_wildcards(f'{INDIR}/CNV/' + '{cproject}/{cnv}.focal_score_by_genes.txt')
+PROJECTS	   = pd.read_csv(config['projects'], sep='\t')['Project'] #TODO: clean this up
 
 # Global scope functions
-
 
 #TODO: log the key error
 def get_resource(rule,resource):
@@ -42,9 +39,8 @@ def get_cnv_file(wildcards):
 
 rule all:
 	input:
-		expand(OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv', project=PROJECT)
+		OUTDIR + '/summary.csv'
 		
-
 rule rebuild_vulcan_database:
 	input:
 	output:
@@ -126,3 +122,14 @@ rule vulcanspot_annotation:
 		mem=get_resource('vulcanspot_annotation', 'mem')
 	shell:
 		"./scripts/vulcanspot_annotation.py {input} {output}"
+
+#TODO: config for this?
+rule generate_summary:
+	input:
+		expand(OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv', project=PROJECTS)
+	output:
+		OUTDIR + '/summary.csv'
+	resources:
+		mem=2048
+	shell:
+		"awk 'NR == 1 || FNR > 1' {input} > {output}"

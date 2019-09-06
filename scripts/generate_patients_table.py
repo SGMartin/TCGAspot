@@ -49,21 +49,25 @@ def main(input_maf:str, input_cnv:str, cancer_census:str,
 	
 	# METRICS #
 	metrics = generate_metrics(merged_alterations, tcga_func_annotated)
+	metrics.to_csv(where_to_save_metrics, sep=',', index=False)
 
 def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame:
 	'''
 	Merges maf and cnv together by outer join and then fills missing rows
 	with None instead of NaN.
 	'''
+	# rename is faster than copying missing genes from one column to another
+	# after merging.
+
+	renamed_cnv = cnv.rename({'Gene Symbol' : 'Hugo_Symbol'}, axis='columns')
+
 	merged_maf_cnv =  maf.merge(
-							right=cnv,
+							right=renamed_cnv,
 					        how='outer',
 						    left_on=['case_id', 'Hugo_Symbol'],
-							right_on=['case_id', 'Gene Symbol']
+							right_on=['case_id', 'Hugo_Symbol']
 							)
-	
-	merged_maf_cnv.drop('Gene Symbol', axis=1, inplace=True)
-	
+		
 	# Fill NaN in Project column for cnv
 	cases_projects = maf.loc[:,['case_id', 'Project']]
 	cases_projects = cases_projects[~cases_projects.duplicated()] # keeps only first case entry
@@ -185,12 +189,12 @@ def generate_metrics(raw_tcga_data: pd.DataFrame,
 	is_GoF = raw_tcga_data['Consequence'] == 'GoF'
 	is_TSG = raw_tcga_data['Role'].str.contains('TSG')
 
-	raw_inconsistent_alterations = len(raw_tcga_data[(is_GOF & is_TSG)].index)
+	raw_inconsistent_alterations = len(raw_tcga_data[(is_GoF & is_TSG)].index)
 	raw_merged_alterations		 = len(raw_tcga_data.index)
 	filtered_merged_alterations  = len(clean_tcga_data.index)
 
 	raw_merged_cases       = raw_tcga_data['case_id'].nunique()
-	raw_inconsistent_cases = raw_tcga_data[(is_GOF & is_TSG)]['case_id'].nunique()
+	raw_inconsistent_cases = raw_tcga_data[(is_GoF & is_TSG)]['case_id'].nunique()
 	filtered_merged_cases  = clean_tcga_data['case_id'].nunique()
 
 	report = {'Item':['merged_cases', 'merged_alterations',
