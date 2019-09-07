@@ -30,6 +30,10 @@ def main(input_maf:str, alterations_save_as:str, metrics_save_as:str):
 	if(os.path.exists(annotation_file)):
 		filtered_maf = exclude_annotated_cases(filtered_maf, annotation_file)
 
+	# Translate barcode to sample type
+	filtered_maf['Sample'] = translate_barcode_to_sample_type(filtered_maf['Tumor_Sample_Barcode'])
+	filtered_maf.drop('Tumor_Sample_Barcode', axis=1, inplace=True)
+
 	# SAVE OUTPUT #
 	filtered_maf.to_csv(where_to_save, sep=',', index=False)
 	
@@ -61,8 +65,9 @@ def load_dataframe(input_file: str) -> pd.DataFrame:
 	Loads input TCGA mutect .maf file as pandas dataframe, appends a project 
 	column and returns it.
 	"""
-	columns_of_interest = ["Hugo_Symbol", "Variant_Classification", "t_depth",
-						   "n_depth", "t_ref_count", "t_alt_count", "case_id",
+	columns_of_interest = ["Hugo_Symbol", "Variant_Classification", 
+						   "Tumor_Sample_Barcode", "t_depth", "n_depth",
+						   "t_ref_count", "t_alt_count", "case_id",
 						   "Consequence"
 						  ]
 
@@ -153,6 +158,41 @@ def exclude_annotated_cases(maf: pd.DataFrame, annotations: str) -> pd.DataFrame
 	filtered_maf	 = maf[~excluded_cases]
 
 	return filtered_maf
+
+def translate_barcode_to_sample_type(barcode:str) -> str:
+	'''
+	Translates tumor barcode to sample type according to
+	https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/sample-type-codes
+	'''
+	CodesDictionary = {
+        "01":"TP",
+        "02":"TR",
+        "03":"TB",
+        "04":"TRBM",
+        "05":"TAP",
+        "06":"TM",
+        "07":"TAM",
+        "08":"THOC",
+        "09":"TBM",
+        "10":"NB",
+        "11":"NT",
+        "12":"NBC",
+        "13":"NEBV",
+        "14":"NBM",
+        "15":"15SH",
+        "16":"16SH",
+        "20":"CELLC",
+        "40":"TRB",
+        "50":"CELL",
+        "60":"XP",
+        "61":"XCL",
+        "99":"99SH"
+    }
+    sampleCode = str(barcode).split('-')
+    doubleDigit = sampleCode[3][0:2]
+
+    return CodesDictionary[doubleDigit]
+
 
 if __name__ == "__main__":
 	main(sys.argv[1], sys.argv[2], sys.argv[3])
