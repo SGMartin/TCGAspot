@@ -31,7 +31,7 @@ def main(input_maf:str, alterations_save_as:str, metrics_save_as:str):
 		filtered_maf = exclude_annotated_cases(filtered_maf, annotation_file)
 
 	# Translate barcode to sample type
-	filtered_maf['Sample'] = translate_barcode_to_sample_type(filtered_maf['Tumor_Sample_Barcode'])
+	filtered_maf['sample'] = translate_barcode_to_sample_type(filtered_maf['Tumor_Sample_Barcode'])
 	filtered_maf.drop('Tumor_Sample_Barcode', axis=1, inplace=True)
 
 	# SAVE OUTPUT #

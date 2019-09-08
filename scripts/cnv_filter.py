@@ -10,7 +10,6 @@ import json
 import os
 import sys
 
-import mygene
 import pandas as pd
 
 
@@ -27,9 +26,10 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 
 	raw_cnv = pd.read_csv(raw_cnv, sep='\t')
 
-	translated_cnv = annotate_from_ensembl_to_hugo(raw_cnv, affy_db)
-	filtered_cnv   = filter_cnv(translated_cnv)
-	annotated_cnv  = match_cases_to_samples(filtered_cnv, metadata)
+	translated_cnv 		  = annotate_from_ensembl_to_hugo(raw_cnv, affy_db)
+	filtered_cnv   		  = filter_cnv(translated_cnv)
+	annotated_cnv  		  = match_cases_to_samples(filtered_cnv, metadata)
+	annotated_cnv_samples = match_samples_to_tissue(annotated_cnv, metadata)
 
 	# Check if annotations.txt is present
 	# TODO: Log this
@@ -40,10 +40,10 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 		annotated_cnv= exclude_annotated_cases(annotated_cnv, annotation_file)
 
 
-	report_metrics = generate_report_metrics(raw_cnv, annotated_cnv)
+	report_metrics = generate_report_metrics(raw_cnv, annotated_cnv_samples)
 
 	# SAVE RESULTS #
-	annotated_cnv.to_csv(where_to_save, sep=',', index=False)
+	annotated_cnv_samples.to_csv(where_to_save, sep=',', index=False)
 	report_metrics.to_csv(metrics, sep=',', index=False)
 	
 
@@ -87,6 +87,29 @@ def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
 
 	return filtered_cnv
 
+#TODO: These two should be refactored
+def match_samples_to_tissue(input_cnv: pd.DataFrame, metadata: str) -> pd.DataFrame:
+	'''
+	Translates sample ID from metadatada to TCGA barcode and then extracts
+	original tissue using TCGA suffixes.
+	https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/sample-type-codes
+	'''
+
+	with open(metadata) as metadata_file:
+		raw_metadata = json.load(metadata_file)
+	
+	patient_barcodes = dict()
+
+	for project in raw_metadata:
+		for patients in project['associated_entities']:
+			patient_barcodes[patients['entity_id']] = patients['entity_submitter_id']
+	
+	input_cnv['sample'] = input_cnv['sample_id'].map(patient_barcodes,
+													 na_action='ignore'
+													)
+	input_cnv['sample'] = translate_barcode_to_sample_type(input_cnv['sample'])
+
+	return input_cnv		
 
 def match_cases_to_samples(input_cnv: pd.DataFrame,
 						   metadata: str) -> pd.DataFrame:
@@ -103,7 +126,7 @@ def match_cases_to_samples(input_cnv: pd.DataFrame,
 	
 	patient_barcodes = dict()
 
-	# Fetch cases and aliquots ids together. Case id matches maf files
+	# Match cases and aliquots ids together. Case id matches maf files
 	for project in raw_metadata:
 		for patients in project['associated_entities']:
 			patient_barcodes[patients['entity_id']] = patients['case_id']
@@ -139,6 +162,41 @@ def exclude_annotated_cases(rcnv: pd.DataFrame, annotations: str) -> pd.DataFram
 
 	return filtered_cnv
 
+def translate_barcode_to_sample_type(barcode:str) -> str:
+	'''
+	Translates tumor barcode to sample type according to
+	https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/sample-type-codes
+	'''
+	CodesDictionary = {
+        "01":"TP",
+        "02":"TR",
+        "03":"TB",
+        "04":"TRBM",
+        "05":"TAP",
+        "06":"TM",
+        "07":"TAM",
+        "08":"THOC",
+        "09":"TBM",
+        "10":"NB",
+        "11":"NT",
+        "12":"NBC",
+        "13":"NEBV",
+        "14":"NBM",
+        "15":"15SH",
+        "16":"16SH",
+        "20":"CELLC",
+        "40":"TRB",
+        "50":"CELL",
+        "60":"XP",
+        "61":"XCL",
+        "99":"99SH"
+    }
+
+	sampleCode = str(barcode).split('-')
+	doubleDigit = sampleCode[3][0:2]
+	
+	return CodesDictionary[doubleDigit]
+
 def generate_report_metrics(rcnv: pd.DataFrame, acnv: pd.DataFrame) -> pd.DataFrame:
 	'''
 	Generates some metrics for each step performed. These are later saved
@@ -146,7 +204,7 @@ def generate_report_metrics(rcnv: pd.DataFrame, acnv: pd.DataFrame) -> pd.DataFr
 	'''
 	#  Report metrics #
 	raw_cases            = len(rcnv.columns) 
-	raw_cases 			-= 3 #accounting for the gene id, cytoband and ensembl cols.
+	raw_cases 			-= 3 # accounting for the gene id, cytoband and ensembl cols.
 	raw_alterations 	 = len(rcnv.index)
 	
 	filtered_cases		 = acnv['case_id'].nunique()
