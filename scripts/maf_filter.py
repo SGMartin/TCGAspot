@@ -188,10 +188,10 @@ def translate_barcode_to_sample_type(barcode:str) -> str:
         "61":"XCL",
         "99":"99SH"
     }
-    sampleCode = str(barcode).split('-')
-    doubleDigit = sampleCode[3][0:2]
+	sampleCode = str(barcode).split('-')
+	doubleDigit = sampleCode[3][0:2]
 
-    return CodesDictionary[doubleDigit]
+	return CodesDictionary[doubleDigit]
 
 
 if __name__ == "__main__":
