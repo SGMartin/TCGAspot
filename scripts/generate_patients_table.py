@@ -17,14 +17,15 @@ def main(input_maf:str, input_cnv:str, cancer_census:str,
 	maf_to_merge = pd.read_csv(input_maf,
 							   sep=',',
 							   usecols=['Hugo_Symbol', 'Variant_Classification',
-							   			'VAF', 'case_id',
-										'Project'],
+							   			'VAF', 'case_id', 'sample', 'Project'],
 							   low_memory=False
 							   )
 
 	cnv_to_merge = pd.read_csv(input_cnv,
 							   sep=',',
-							   usecols=['Gene Symbol', 'case_id', 'copy_number'],
+							   usecols=['Gene Symbol', 'case_id',
+							   		    'copy_number', 'sample'
+									   ],
 							   low_memory=False
 							   )
 
@@ -64,8 +65,8 @@ def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame
 	merged_maf_cnv =  maf.merge(
 							right=renamed_cnv,
 					        how='outer',
-						    left_on=['case_id', 'Hugo_Symbol'],
-							right_on=['case_id', 'Hugo_Symbol']
+						    left_on=['case_id', 'sample', 'Hugo_Symbol'],
+							right_on=['case_id','sample', 'Hugo_Symbol']
 							)
 		
 	# Fill NaN in Project column for cnv
