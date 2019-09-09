@@ -35,20 +35,20 @@ def report_patient_summary(summary: str, where_to_save: str):
 	#TODO: save this to a table before % and melting... useful for report?
 	totals['pancancer'] = totals['pancancer'] / totals['total'] * 100
 	totals['local']		= totals['local'] / totals['total'] * 100
-	totals['total']	= 100
 
-
+	# totals removed as they are always 100
 	totals = totals.melt(id_vars='Project',
 						 var_name='type',
 						 value_name='count',
-						 value_vars=['total', 'pancancer', 'local']
+						 value_vars=['pancancer', 'local']
 						)
 
 	# rounding to the units
 	totals['count'] = totals['count'].round(0)
 
 	# renaming for easier plotting... better than handling matplotlib labels manually
-	label_dict = {'total' : 'All cases',
+
+	label_dict = {
 				  'pancancer': 'Pan-cancer',
 				  'local': 'Matched tissue'
 				 }
@@ -56,7 +56,7 @@ def report_patient_summary(summary: str, where_to_save: str):
 	totals['type'] = totals['type'].map(label_dict)
 
 	# Create a new figure
-	fig, ax = plt.subplots(figsize=(15,6))
+	fig, ax = plt.subplots(figsize=(15,15))
 
 	sns.set_style('whitegrid')
 	sns.set_color_codes('pastel')

@@ -39,7 +39,7 @@ def get_cnv_file(wildcards):
 
 rule all:
 	input:
-		OUTDIR + '/PLOTS/cases_druggable.png'
+		OUTDIR + '/PLOTS/cases_druggable.svg'
 		
 rule rebuild_vulcan_database:
 	input:
@@ -138,7 +138,7 @@ rule generate_summary_plots:
 	input:
 		rules.generate_summary.output.summary
 	output:
-		OUTDIR + '/PLOTS/cases_druggable.png'
+		OUTDIR + '/PLOTS/cases_druggable.svg'
 	
 	threads:
 		get_resource('generate_summary_plots', 'threads')
