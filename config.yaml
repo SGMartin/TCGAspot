@@ -31,3 +31,6 @@ rules:
     vulcanspot_annotation:
         threads: 1
         mem: 2048
+    generate_summary_plots:
+        threads: 1
+        mem: 2048

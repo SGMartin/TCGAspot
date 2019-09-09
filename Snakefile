@@ -39,7 +39,7 @@ def get_cnv_file(wildcards):
 
 rule all:
 	input:
-		OUTDIR + '/summary.csv'
+		OUTDIR + '/PLOTS/cases_druggable.png'
 		
 rule rebuild_vulcan_database:
 	input:
@@ -128,8 +128,21 @@ rule generate_summary:
 	input:
 		expand(OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv', project=PROJECTS)
 	output:
-		OUTDIR + '/summary.csv'
+		summary = OUTDIR + '/summary.csv'
 	resources:
 		mem=2048
 	shell:
 		"awk 'NR == 1 || FNR > 1' {input} > {output}"
+
+rule generate_summary_plots:
+	input:
+		rules.generate_summary.output.summary
+	output:
+		OUTDIR + '/PLOTS/cases_druggable.png'
+	
+	threads:
+		get_resource('generate_summary_plots', 'threads')
+	resources:
+		mem=get_resource('generate_summary_plots', 'mem')
+	shell:
+		"./scripts/generate_summary_plots.py {input} {output}"
