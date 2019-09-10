@@ -125,8 +125,7 @@ def report_patients_alterations_boxplot(summary: pd.DataFrame, where_to_save:str
 
 	patients_alterations = summary.drop(['Variant_Classification', 
 										'VAF','Role', 'Context',
-										'Consequence', 'copy_number',
-										'sample'
+										'copy_number','sample'
 										],
 										axis=1)
 	
@@ -136,7 +135,7 @@ def report_patients_alterations_boxplot(summary: pd.DataFrame, where_to_save:str
 
 	patients_alterations = patients_alterations[in_local | in_pancancer]
 
-	# Drop duplicates from dif. sample sources. We'll consider them a single
+	# Drop duplicates: genes with multiple hits. We'll consider them a single
 	# target
 	patients_alterations.drop_duplicates(inplace=True)
 
