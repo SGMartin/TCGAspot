@@ -139,7 +139,9 @@ rule generate_summary_plots:
 		rules.generate_summary.output.summary
 	output:
 		OUTDIR + '/PLOTS/cases_druggable.svg',
-		OUTDIR + '/PLOTS/alterations_classified.svg'
+		OUTDIR + '/PLOTS/alterations_classified.svg',
+		OUTDIR + '/PLOTS/alterations_count_local.svg',
+		OUTDIR + '/PLOTS/alterations_count_pancancer.svg'
 	
 	threads:
 		get_resource('generate_summary_plots', 'threads')
