@@ -138,11 +138,12 @@ rule generate_summary_plots:
 	input:
 		rules.generate_summary.output.summary
 	output:
-		OUTDIR + '/PLOTS/cases_druggable.svg'
+		OUTDIR + '/PLOTS/cases_druggable.svg',
+		OUTDIR + '/PLOTS/alterations_classified.svg'
 	
 	threads:
 		get_resource('generate_summary_plots', 'threads')
 	resources:
 		mem=get_resource('generate_summary_plots', 'mem')
 	shell:
-		"./scripts/generate_summary_plots.py {input} {output}"
+		"./scripts/generate_summary_plots.py {input} {OUTDIR}/PLOTS"

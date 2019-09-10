@@ -8,20 +8,35 @@ import seaborn as sns
 
 def main(summary: str, save_to:str):
 
-	report_patient_summary(summary, save_to)
+	druggable_cases     = save_to + '/cases_druggable.svg'
+	gof_lof_alterations = save_to + '/alterations_classified.svg'
 
 
+	summary = pd.read_csv(summary, sep=',', low_memory=False)
 
-def report_patient_summary(summary: str, where_to_save: str):
+	report_patient_summary(summary, druggable_cases)
+	report_gof_lof_alterations(summary, gof_lof_alterations)
+
+
+def report_gof_lof_alterations(summary:pd.DataFrame ,where_to_save: str):
+
+	# Create a new fig
+	fig  = plt.figure(figsize=(15,6))
+
+	countplot = sns.countplot(x='Consequence',
+							  data=summary,
+							  order=summary['Consequence'].value_counts().index
+							 )
+
+	countplot.set(xlabel='Alterations classified', ylabel='Count')
+
+	plt.savefig(where_to_save, format='svg')
+
+def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 	'''
 	Builds a report of cases with at least one alteration druggable  using
 	synth. lethality as predicted by VulcanSpot.
 	'''
-
-	summary = pd.read_csv(summary, sep=',', usecols=['case_id', 'Project', 
-													 'Vulcan_Local', 'Vulcan_Pancancer'
-													])
-	
 	# Building a frequency table
 	totals     = summary.groupby('Project')['case_id'].nunique().reset_index()
 	localv     = summary[summary['Vulcan_Local']].groupby('Project')['case_id'].nunique()
@@ -47,7 +62,6 @@ def report_patient_summary(summary: str, where_to_save: str):
 	totals['count'] = totals['count'].round(0)
 
 	# renaming for easier plotting... better than handling matplotlib labels manually
-
 	label_dict = {
 				  'pancancer': 'Pan-cancer',
 				  'local': 'Matched tissue'
@@ -57,7 +71,8 @@ def report_patient_summary(summary: str, where_to_save: str):
 
 	# Create a new figure
 	fig, ax = plt.subplots(figsize=(15,15))
-
+	
+	sns.set_context("paper")
 	sns.set_style('whitegrid')
 	sns.set_color_codes('pastel')
 
@@ -71,17 +86,19 @@ def report_patient_summary(summary: str, where_to_save: str):
 	plt.title('Cases druggable by VulcanSpot')
 
 	ax.legend(ncol=1,
-			  loc='lower right',
+			  loc='lower center',
+			  bbox_to_anchor=(0.5,-0.1),
+			  shadow=True,
 			  frameon=True
 			  )
 
 	ax.set(xlim=(0,100),
-	       ylabel='TCGA project', 
+	       ylabel='TCGA tumor type', 
 	       xlabel='Fraction of cases'
 		   )
 
 	# Save it
-	plt.savefig(where_to_save)
+	plt.savefig(where_to_save, format='svg')
 
 if __name__ == "__main__":
 	main(sys.argv[1], sys.argv[2])
