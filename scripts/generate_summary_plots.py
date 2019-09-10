@@ -22,7 +22,7 @@ def report_gof_lof_alterations(summary:pd.DataFrame ,where_to_save: str):
 
 	# Create a new fig
 	fig  = plt.figure(figsize=(15,6))
-
+	sns.set_color_codes('muted')
 	countplot = sns.countplot(x='Consequence',
 							  data=summary,
 							  order=summary['Consequence'].value_counts().index
@@ -70,25 +70,37 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 	totals['type'] = totals['type'].map(label_dict)
 
 	# Create a new figure
-	fig, ax = plt.subplots(figsize=(15,15))
+	fig, ax = plt.subplots(figsize=(6,15))
 	
-	sns.set_context("paper")
+
 	sns.set_style('whitegrid')
+
 	sns.set_color_codes('pastel')
 
-	figure = sns.barplot(x='count',
+	figure_pancancer = sns.barplot(x='count',
+								   y='Project',
+								   data=totals[totals['type'] == 'Pan-cancer'],
+								   label='Pan-cancer',
+								   color='b'
+								   )
+
+
+	sns.set_color_codes('muted')
+
+	figure_local = sns.barplot(
+						 x='count',
 						 y='Project',
-						 hue='type',
-						 data=totals
+						 data=totals[totals['type'] == 'Matched tissue'],
+						 label='Matched tissue',
+						 color='b'
 						 )
-	
+
 	# Figure details
 	plt.title('Cases druggable by VulcanSpot')
 
-	ax.legend(ncol=1,
+	ax.legend(ncol=2,
 			  loc='lower center',
 			  bbox_to_anchor=(0.5,-0.1),
-			  shadow=True,
 			  frameon=True
 			  )
 
@@ -97,6 +109,7 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 	       xlabel='Fraction of cases'
 		   )
 
+	sns.despine(left=True)
 	# Save it
 	plt.savefig(where_to_save, format='svg')
 
