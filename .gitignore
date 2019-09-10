@@ -1,2 +1,4 @@
 .snakemake/log/
+.snakemake/metadata/
 reference/CancerGeneCensus.tsv
+
