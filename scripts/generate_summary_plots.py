@@ -65,18 +65,14 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 	label_dict = {
 				  'pancancer': 'Pan-cancer',
 				  'local': 'Matched tissue'
-				 }
-	
+				 }	
 	totals['type'] = totals['type'].map(label_dict)
 
 	# Create a new figure
-	fig, ax = plt.subplots(figsize=(6,15))
-	
-
+	fig, ax = plt.subplots(figsize=(7,13))
 	sns.set_style('whitegrid')
 
 	sns.set_color_codes('pastel')
-
 	figure_pancancer = sns.barplot(x='count',
 								   y='Project',
 								   data=totals[totals['type'] == 'Pan-cancer'],
@@ -84,9 +80,7 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 								   color='b'
 								   )
 
-
 	sns.set_color_codes('muted')
-
 	figure_local = sns.barplot(
 						 x='count',
 						 y='Project',
@@ -98,7 +92,16 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 	# Figure details
 	plt.title('Cases druggable by VulcanSpot')
 
-	ax.legend(ncol=2,
+	# Re-order artists and handles so that matched tissue legend bar comes 
+	# before pancancer.
+	handles, labels = ax.get_legend_handles_labels()
+	handles = [handles[1], handles[0]]
+	labels  = [labels[1], labels[0]]
+
+	ax.legend(
+			  handles=handles,
+			  labels=labels,
+			  ncol=2,
 			  loc='lower center',
 			  bbox_to_anchor=(0.5,-0.1),
 			  frameon=True
@@ -110,7 +113,7 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 		   )
 
 	sns.despine(left=True)
-	# Save it
+
 	plt.savefig(where_to_save, format='svg')
 
 if __name__ == "__main__":
