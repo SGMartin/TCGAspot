@@ -185,7 +185,7 @@ def boxplot_alterations(data: pd.DataFrame, context:str, save_to:str):
 						  data=data
 						 )
 
-	plt.title(f"Summary of {context} patients druggable alterations")
+	plt.title(f"Summary of patients druggable alterations: {context}")
 	ax.set(xlabel='Project', ylabel='Patients druggable alterations')
 
 	boxplot.set_xticklabels(boxplot.get_xticklabels(), rotation=30)
