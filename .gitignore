@@ -2,3 +2,4 @@
 .snakemake/metadata/
 reference/CancerGeneCensus.tsv
 
+pan-tcga.svg
