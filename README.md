@@ -1,7 +1,7 @@
 # TCGAspot
 
 <p align="center">
-  <img width="460" height="300" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
+  <img width="600" height="480" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
 </p>
 ## Introduction
 
