@@ -9,15 +9,17 @@ import sys
 
 import pandas as pd
 
-
 def main(input_maf:str, input_cnv:str, cancer_census:str, 
 	     context_translation:str, where_to_save: str, where_to_save_metrics:str):
 
 	# Loading input dataframes #
 	maf_to_merge = pd.read_csv(input_maf,
 							   sep=',',
-							   usecols=['Hugo_Symbol', 'Variant_Classification',
-							   			'VAF', 'case_id', 'sample', 'Project'],
+							   usecols=['Hugo_Symbol', 'Chromosome',
+							   		    'Start_Position', 'End_Position',
+							    		'Variant_Classification',
+							   			'VAF', 'case_id', 'sample', 'Project'
+										],
 							   low_memory=False
 							   )
 

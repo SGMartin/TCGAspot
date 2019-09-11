@@ -65,7 +65,15 @@ def load_dataframe(input_file: str) -> pd.DataFrame:
 	Loads input TCGA mutect .maf file as pandas dataframe, appends a project 
 	column and returns it.
 	"""
-	columns_of_interest = ["Hugo_Symbol", "Variant_Classification", 
+	# Do not worry about Strand. It is always +. 
+	# Source: https://www.biostars.org/p/116333/
+
+	# Added start and end positions for maximum res. level. They won't be of use
+	# but to keep duplicates at bay.
+	
+	columns_of_interest = ["Hugo_Symbol", 'Chromosome',
+						   "Start_Position", "End_Position",
+						   "Variant_Classification", 
 						   "Tumor_Sample_Barcode", "t_depth", "n_depth",
 						   "t_ref_count", "t_alt_count", "case_id",
 						   "Consequence"
