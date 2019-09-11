@@ -3,6 +3,7 @@
 <p align="center">
   <img width="600" height="480" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
 </p>
+
 ## Introduction
 
 TCGASpot is a snakemake pipeline whose main purpose is to apply a pharmacogenomic tool called ***VulcanSpot*** to  large amounts of genomic data from ***The Cancer Genome Atlas*** (TCGA). Check VulcanSpot online at: http://vulcanspot.org/
