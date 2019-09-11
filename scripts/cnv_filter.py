@@ -26,10 +26,12 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 
 	raw_cnv = pd.read_csv(raw_cnv, sep='\t')
 
+	# TODO: clear this up
 	translated_cnv 		  = annotate_from_ensembl_to_hugo(raw_cnv, affy_db)
-	filtered_cnv   		  = filter_cnv(translated_cnv)
+	filtered_cnv   		  = reshape_cnv(translated_cnv)
 	annotated_cnv  		  = match_cases_to_samples(filtered_cnv, metadata)
 	annotated_cnv_samples = match_samples_to_tissue(annotated_cnv, metadata)
+	clean_cnv_samples 	  = filter_overlapping_regions(annotated_cnv_samples)
 
 	# Check if annotations.txt is present
 	# TODO: Log this
@@ -37,13 +39,14 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 	annotation_file     = input_cnv_directory + '/annotations.txt'
 
 	if(os.path.exists(annotation_file)):
-		annotated_cnv= exclude_annotated_cases(annotated_cnv, annotation_file)
+		clean_cnv_samples = exclude_annotated_cases(clean_cnv_samples,
+												    annotation_file
+													)
 
-
-	report_metrics = generate_report_metrics(raw_cnv, annotated_cnv_samples)
+	report_metrics = generate_report_metrics(raw_cnv, clean_cnv_samples)
 
 	# SAVE RESULTS #
-	annotated_cnv_samples.to_csv(where_to_save, sep=',', index=False)
+	clean_cnv_samples.to_csv(where_to_save, sep=',', index=False)
 	report_metrics.to_csv(metrics, sep=',', index=False)
 	
 
@@ -69,10 +72,11 @@ def annotate_from_ensembl_to_hugo(cnv: pd.DataFrame, db: str) -> pd.DataFrame:
 	del translated_affy_snp
 	return cnv_alterations
 
-def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
+#TODO: Candidate for refactoring
+def reshape_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
 	'''
 	Reshapes cnv files to a long format, using Gene symbol as id and then
-	drop neutral cnv values.
+	drop neutral cnv values. 
 	'''
 	reshaped_cnv = pd.melt(frame=cnv,
 	                       id_vars=['Gene Symbol'],
@@ -81,12 +85,14 @@ def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
 						  )
 
 	# drop neutrals and rename
-	filtered_cnv = reshaped_cnv[reshaped_cnv.loc[:,'copy_number'] != 0]
+	annotated_cnv = reshaped_cnv[reshaped_cnv.loc[:,'copy_number'] != 0]
+
 	gain_and_loss = {1: 'cnv_gain', -1: 'cnv_loss'}
-	filtered_cnv = filtered_cnv.replace({'copy_number' : gain_and_loss})
+	annotated_cnv = annotated_cnv.replace({'copy_number' : gain_and_loss})
 
-	return filtered_cnv
+	return annotated_cnv
 
+	
 #TODO: These two should be refactored
 def match_samples_to_tissue(input_cnv: pd.DataFrame, metadata: str) -> pd.DataFrame:
 	'''
@@ -161,6 +167,28 @@ def exclude_annotated_cases(rcnv: pd.DataFrame, annotations: str) -> pd.DataFram
 	filtered_cnv	 = rcnv[~excluded_cases]
 
 	return filtered_cnv
+
+
+def filter_overlapping_regions(filtered_cnv: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Resolves duplicates originated from overlapping regions.
+	'''
+	# Drop concensus gain/loss from adjacent regions mapped to the same gene
+	filtered_cnv.drop_duplicates(inplace=True, keep='first')
+
+	# It might happen that genes spanning two regions are GoF and LoF at the
+	# same time. It is extremely rare. Not worth a manual dec. tree. Drop all
+
+	filtered_cnv.drop_duplicates(subset=['Gene Symbol','sample_id',
+										 'case_id', 'sample'
+										 ],
+								 keep=False,
+								 inplace=True
+								 )
+
+	return filtered_cnv
+
+
 
 def translate_barcode_to_sample_type(barcode:str) -> str:
 	'''
