@@ -1,4 +1,4 @@
-#                                                     TCGAspot
+<h1 align="center">TCGASpot</h1>
 
 <p align="center">
   <img width="600" height="480" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
