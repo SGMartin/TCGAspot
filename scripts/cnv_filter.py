@@ -175,7 +175,10 @@ def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
 	cnv = cnv.append(consensus_aliquots) # rescue consensus
 
 	# Now drop neutrals and rename
-	filtered_cnv = cnv[~cnv['copy_number'] == 0]
+	#annotated_cnv = reshaped_cnv[reshaped_cnv.loc[:,'copy_number'] != 0]
+
+	filtered_cnv = cnv[cnv.loc[:,'copy_number'] != 0]
+	
 	gof_lof = {-1:'cnv_loss', 1:'cnv_gain'}
 	clean_cnv = filtered_cnv.replace({'copy_number': gof_lof})
 
