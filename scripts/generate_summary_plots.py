@@ -24,15 +24,43 @@ def main(summary: str, save_to:str):
 
 def report_gof_lof_alterations(summary:pd.DataFrame ,where_to_save: str):
 
-	# Create a new fig
-	fig  = plt.figure(figsize=(15,6))
-	sns.set_color_codes('muted')
-	countplot = sns.countplot(x='Consequence',
-							  data=summary,
-							  order=summary['Consequence'].value_counts().index
-							 )
+	# Get table
+	# TODO: Improve this
+	alts = summary.drop(['case_id', 'Chromosome', 'Start_Position', 'End_Position', 'Role', 'Context', 'Vulcan_Local',
+	'Vulcan_Pancancer', 'Project', 'sample', 'Hugo_Symbol', 'VAF'], axis=1)
 
-	countplot.set(xlabel='Alterations classified', ylabel='Count')
+	alts['snv']  = alts['Variant_Classification'] != 'None'
+	alts['scna'] = alts['copy_number'] != 'None'
+	alts['both'] = np.logical_and(alts['snv'], alts['scna']) # GoF/LoF predict. is supported by both scna and snv
+
+	alts.drop(['Variant_Classification', 'copy_number'], axis=1, inplace=True)
+	
+	alts = alts.groupby('Consequence').agg(np.sum) # counts True as 1
+	alts = alts.reset_index()
+
+	alts = pd.melt(frame=alts,
+				   id_vars='Consequence',
+				   value_vars=['scna', 'snv', 'both'],
+				   var_name='alteration',
+				   value_name='count'
+				   )
+	
+	# Get a % out of total count
+	alts['count'] = alts['count'] / alts['count'].sum() * 100
+	
+	# Create a new fig
+	sns.set(style='whitegrid')
+	sns.set_color_codes('muted')
+
+	fig = plt.figure(figsize=(15,6))
+
+	plt.title('Alterations classified by source')
+
+	barplot = sns.barplot(x='Consequence', y='count',
+						  data=alts, hue='type', 
+						  kind='bar')
+	
+	barplot.set(xlabel='Alterations classified', ylabel='Fraction of total')
 
 	plt.savefig(where_to_save, format='svg')
 
