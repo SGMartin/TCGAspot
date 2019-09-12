@@ -57,7 +57,7 @@ def report_gof_lof_alterations(summary:pd.DataFrame ,where_to_save: str):
 	plt.title('Alterations classified by source')
 
 	barplot = sns.barplot(x='Consequence', y='count',
-						  data=alts, hue='type', 
+						  data=alts, hue='alteration', 
 						  kind='bar')
 	
 	barplot.set(xlabel='Alterations classified', ylabel='Fraction of total')
