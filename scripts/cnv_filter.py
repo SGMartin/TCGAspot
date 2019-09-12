@@ -26,12 +26,9 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 
 	raw_cnv = pd.read_csv(raw_cnv, sep='\t')
 
-	# TODO: clear this up
-	translated_cnv 		  = annotate_from_ensembl_to_hugo(raw_cnv, affy_db)
-	filtered_cnv   		  = reshape_cnv(translated_cnv)
-	annotated_cnv  		  = match_cases_to_samples(filtered_cnv, metadata)
-	annotated_cnv_samples = match_samples_to_tissue(annotated_cnv, metadata)
-	clean_cnv_samples 	  = filter_overlapping_regions(annotated_cnv_samples)
+	# Hugo and metadata Annot.
+	ensembl_cnv     = annotate_from_ensembl_to_hugo(raw_cnv, affy_db)
+	annotated_cnv   = annotate_cnv_from_metadata(ensembl_cnv, metadata)
 
 	# Check if annotations.txt is present
 	# TODO: Log this
@@ -39,66 +36,158 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 	annotation_file     = input_cnv_directory + '/annotations.txt'
 
 	if(os.path.exists(annotation_file)):
-		clean_cnv_samples = exclude_annotated_cases(clean_cnv_samples,
-												    annotation_file
-													)
+		annotated_cnv = exclude_annotated_items(annotated_cnv, annotation_file)
 
-	report_metrics = generate_report_metrics(raw_cnv, clean_cnv_samples)
+	# filter CNV neutrals and multiple aliquots
+	filtered_cnv = filter_cnv(annotated_cnv)					
 
 	# SAVE RESULTS #
-	clean_cnv_samples.to_csv(where_to_save, sep=',', index=False)
+	filtered_cnv.to_csv(where_to_save, sep=',', index=False)
+
+	# Get metrics #
+	report_metrics = generate_report_metrics(raw_cnv, filtered_cnv)
 	report_metrics.to_csv(metrics, sep=',', index=False)
 	
 
 def annotate_from_ensembl_to_hugo(cnv: pd.DataFrame, db: str) -> pd.DataFrame:
 	'''
 	Using a pregenerated, translated file, it matches SNP ENSEMBL values to
-	MyGene HUGO values and gets rids of unmapped regions.
+	MyGene HUGO values and gets rids of unmapped and ambiguous regions.
+	Returns a melted, reshaped dataframe
 	'''
 
 	# Load the database
 	translated_affy_snp = pd.read_csv(db, sep=',', usecols=['Gene Symbol'])
 
 	# these should match 1:1 because of how cnv data is arranged, so no need
-	# for mapping
+	# for manual index mapping
 	cnv['Gene Symbol'] = translated_affy_snp['Gene Symbol']
 
-	# delete unmapped regions
+	# delete unmapped genomic regions
 	cnv_alterations	= cnv[~cnv['Gene Symbol'].isnull()]
 
 	# drop Gene ID and Cytoband  columns as these are not used
 	cnv_alterations = cnv_alterations.drop(['Gene ID', 'Cytoband'], axis=1)
 
+	# reshape data for easier manip.
+	cnv_alterations = pd.melt(frame=cnv_alterations,
+							  id_vars='Gene Symbol',
+							  var_name='sample_id',
+							  value_name='copy_number'
+							 )
+	
+	# get genes which mapped to two regions
+	is_ambiguous = translated_affy_snp['Gene Symbol'].duplicated(keep='first')
+	ambiguous_genes = translated_affy_snp[is_ambiguous]
+
+	# drop reference, unmapped regions
+	ambiguous_genes = ambiguous_genes[~ambiguous_genes['Gene Symbol'].isnull()]
+	ambiguous_genes = ambiguous_genes['Gene Symbol']
+
+	# get ambiguous genes with shared alterations. These will be kept.
+	is_cnv_ambiguous = cnv_alterations['Gene Symbol'].isin(ambiguous_genes)
+	cnv_ambiguous    = cnv_alterations[is_cnv_ambiguous]
+	
+	is_cnv_ambiguous_consensus = cnv_ambiguous.duplicated(keep='first')
+	cnv_ambiguous_consensus    = cnv_ambiguous[is_cnv_ambiguous_consensus]
+
+	# drop ambiguous, non consensual from data
+	cnv_alterations = cnv_alterations[~is_cnv_ambiguous]
+
+	# rescue consensus data
+	cnv_alterations = cnv_alterations.append(cnv_ambiguous_consensus)
+
 	del translated_affy_snp
+	del ambiguous_genes
+	del cnv_ambiguous_consensus
 	return cnv_alterations
 
-#TODO: Candidate for refactoring
-def reshape_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
+
+def annotate_cnv_from_metadata(cnv: pd.DataFrame, metadata:str) -> pd.DataFrame:
 	'''
-	Reshapes cnv files to a long format, using Gene symbol as id and then
-	drop neutral cnv values. 
+	Annotates CNV using metadata. Returns a dataframe with aliquot and sample 
+	columns.
 	'''
-	reshaped_cnv = pd.melt(frame=cnv,
-	                       id_vars=['Gene Symbol'],
-						   var_name='sample_id',
-						   value_name='copy_number'
-						  )
+	# get sample barcode and alliquot
+	cnv_annotated 			 = get_barcode_from_sample(cnv, metadata)
+	cnv_annotated['aliquot'] = cnv_annotated['barcode'].str.split('-').str[3].str[2]
 
-	# drop neutrals and rename
-	annotated_cnv = reshaped_cnv[reshaped_cnv.loc[:,'copy_number'] != 0]
+	# get sample type from barcode
+	cnv_annotated['sample']	= translate_barcode_to_tumor(cnv_annotated['barcode'])
+	cnv_annotated.drop('barcode', axis=1, inplace=True)
 
-	gain_and_loss = {1: 'cnv_gain', -1: 'cnv_loss'}
-	annotated_cnv = annotated_cnv.replace({'copy_number' : gain_and_loss})
+	# get case id from sample
+	cnv_annotated_samples    = 	get_case_from_sample(cnv_annotated, metadata)
 
-	return annotated_cnv
+	return cnv_annotated_samples
 
+def exclude_annotated_items(cnv: pd.DataFrame, annotations:str) -> pd.DataFrame:
+	'''
+	Loads annotations.txt and filters out flagged items and cases. Cases/Items 
+	are spared in certain cases based on notification category. Returns a
+	filtered dataframe
+	'''
+	# Exclude both annotated aliquots and cases
+	flagged_items = pd.read_csv(annotations,
+								sep='\t',
+								usecols=['entity_type', 
+								   		 'entity_id',
+										 'category'
+										]
+								)
+
+	spared_categories  = ['History of acceptable prior treatment related to a prior/other malignancy',
+						  'Acceptable treatment for TCGA tumor',
+						  'Alternate sample pipeline'
+						 ]
 	
-#TODO: These two should be refactored
-def match_samples_to_tissue(input_cnv: pd.DataFrame, metadata: str) -> pd.DataFrame:
+	flagged_items = flagged_items[~flagged_items['category'].isin(spared_categories)]
+
+	# get cases and filter them
+	excluded_cases = flagged_items[flagged_items['entity_type'] == 'case']['entity_id']
+	cnv			   = cnv[~cnv['case_id'].isin(excluded_cases)]
+
+	# get aliquots and filter them
+	aliquots = flagged_items[flagged_items['entity_type'] == 'aliquot']['entity_id']
+	cnv_clean = cnv[~cnv['sample_id'].isin(aliquots)]
+
+	del flagged_items
+	return cnv_clean
+
+def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Drop entries when multiple aliquots from the same source do not match. Then
+	it drops neutrals and rename gains and loss to cnv_gain and cnv_loss. 
+	Returns a filtered dataframe.
+	'''
+	#TODO: maybe count aliquots and get a consensus
+
+	# Get cases alterations from with multiple aliquots from the same sample
+	mult_aliquots = cnv.duplicated(subset=['sample', 'Gene Symbol', 'case_id'])
+
+	# Keep cases with multiple aliquots and drop all but consensus, of which
+	# one is kept
+	consensus_aliquots = cnv[mult_aliquots]
+	consensus_aliquots = consensus_aliquots[consensus_aliquots.duplicated(keep='first')]
+
+	# now drop all multiple aliquots instances from the mother matrix
+	cnv = cnv[~mult_aliquots]
+	cnv = cnv.append(consensus_aliquots) # rescue consensus
+
+	# Now drop neutrals and rename
+	filtered_cnv = cnv[~cnv['copy_number'] == 0]
+	gof_lof = {-1:'cnv_loss', 1:'cnv_gain'}
+	clean_cnv = filtered_cnv.replace({'copy_number': gof_lof})
+
+	del filtered_cnv
+	del consensus_aliquots
+	return clean_cnv
+
+
+def get_barcode_from_sample(input_cnv: pd.DataFrame, metadata: str) -> pd.DataFrame:
 	'''
 	Translates sample ID from metadatada to TCGA barcode and then extracts
-	original tissue using TCGA suffixes.
-	https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/sample-type-codes
+	original tissue and aliquot number.
 	'''
 
 	with open(metadata) as metadata_file:
@@ -110,23 +199,19 @@ def match_samples_to_tissue(input_cnv: pd.DataFrame, metadata: str) -> pd.DataFr
 		for patients in project['associated_entities']:
 			patient_barcodes[patients['entity_id']] = patients['entity_submitter_id']
 	
-	input_cnv['sample'] = input_cnv['sample_id'].map(patient_barcodes,
+	input_cnv['barcode'] = input_cnv['sample_id'].map(patient_barcodes,
 													 na_action='ignore'
 													)
-	input_cnv['sample'] = translate_barcode_to_sample_type(input_cnv['sample'])
-
 	return input_cnv		
 
-def match_cases_to_samples(input_cnv: pd.DataFrame,
-						   metadata: str) -> pd.DataFrame:
+
+def get_case_from_sample(input_cnv: pd.DataFrame, metadata: str) -> pd.DataFrame:
 	'''
 	Translates samples ID to case UUID using metadata. Observations are
-	named after alliquots. We have to rename them using the corresponding
-	patient ID. This enables later matching with mutation data
+	named after alliquots. Returns a dataframe with a new column called
+	case_id
 	'''
 	
-	print("Reading metadata...")
-
 	with open(metadata) as metadata_file:
 		raw_metadata = json.load(metadata_file)
 	
@@ -144,53 +229,7 @@ def match_cases_to_samples(input_cnv: pd.DataFrame,
 	
 	return input_cnv
 
-def exclude_annotated_cases(rcnv: pd.DataFrame, annotations: str) -> pd.DataFrame:
-	''' 
-		Loads annotations.txt file for this project and returns a dataframe of
-		excluded cases id. Cases/Items in annotations.txt are spared
-		in certain cases based on notification category.
-	'''
-	cases_to_exclude = pd.read_csv(annotations,
-								   sep='\t',
-								   usecols=['entity_id', 'category']
-								   )
-
-	categories_to_keep = ['History of acceptable prior treatment related to a prior/other malignancy',
-						  'Acceptable treatment for TCGA tumor',
-						  'Alternate sample pipeline'
-						 ]
-	
-	acceptable_alterations = cases_to_exclude['category'].isin(categories_to_keep)
-	cases_to_exclude   	   = cases_to_exclude[~acceptable_alterations]
-
-	excluded_cases   = rcnv['case_id'].isin(cases_to_exclude['entity_id'])
-	filtered_cnv	 = rcnv[~excluded_cases]
-
-	return filtered_cnv
-
-
-def filter_overlapping_regions(filtered_cnv: pd.DataFrame) -> pd.DataFrame:
-	'''
-	Resolves duplicates originated from overlapping regions.
-	'''
-	# Drop concensus gain/loss from adjacent regions mapped to the same gene
-	filtered_cnv.drop_duplicates(inplace=True, keep='first')
-
-	# It might happen that genes spanning two regions are GoF and LoF at the
-	# same time. It is extremely rare. Not worth a manual dec. tree. Drop all
-
-	filtered_cnv.drop_duplicates(subset=['Gene Symbol','sample_id',
-										 'case_id', 'sample'
-										 ],
-								 keep=False,
-								 inplace=True
-								 )
-
-	return filtered_cnv
-
-
-
-def translate_barcode_to_sample_type(barcode:str) -> str:
+def translate_barcode_to_tumor(barcode:str) -> str:
 	'''
 	Translates tumor barcode to sample type according to
 	https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/sample-type-codes
