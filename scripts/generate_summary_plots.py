@@ -41,9 +41,15 @@ def report_gof_lof_alterations(summary:pd.DataFrame ,where_to_save: str):
 	alts = pd.melt(frame=alts,
 				   id_vars='Consequence',
 				   value_vars=['scna', 'snv', 'both'],
-				   var_name='alteration',
+				   var_name='source',
 				   value_name='count'
 				   )
+	
+	# renaming for a better plot legend
+	readable_names = {'snv':'SNV', 'scna': 'CNV', 'both': 'Both'}
+	alts['Source'] = alts['source'].map(readable_names)
+
+	alts.drop('source', axis=1, inplace=True)
 	
 	# Get a % out of total count
 	alts['count'] = alts['count'] / alts['count'].sum() * 100
@@ -57,10 +63,10 @@ def report_gof_lof_alterations(summary:pd.DataFrame ,where_to_save: str):
 	plt.title('Alterations classified by source')
 
 	barplot = sns.catplot(x='Consequence', y='count',
-						  data=alts, hue='alteration', 
+						  data=alts, hue='Source', 
 						  kind='bar')
 	
-	barplot.set(xlabel='Alterations classified', ylabel='Fraction of total')
+	barplot.set(xlabel='Gene alterations', ylabel="% of total alterations")
 
 	plt.savefig(where_to_save, format='svg')
 
