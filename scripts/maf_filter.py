@@ -84,8 +84,7 @@ def load_dataframe(input_file: str) -> pd.DataFrame:
 	# search for project name based on relative location of "mutect"
 	# note that this will fail depending on dir names... but it's the
 	# best we can do
-	# SCAN for MUTECT, VARSCAN etc...
-	# 	
+	# TODO: SCAN for MUTECT, VARSCAN etc...
 	p_index 	  = split_project.index('mutect')
 	project_index = p_index - 1
 	project_name   = split_project[project_index]
