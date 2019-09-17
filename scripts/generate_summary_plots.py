@@ -26,8 +26,12 @@ def report_gof_lof_alterations(summary:pd.DataFrame ,where_to_save: str):
 
 	# Get table
 	# TODO: Improve this
-	alts = summary.drop(['case_id', 'Chromosome', 'Start_Position', 'End_Position', 'Role', 'Context', 'Vulcan_Local',
-	'Vulcan_Pancancer', 'Project', 'sample', 'Hugo_Symbol', 'VAF'], axis=1)
+	alts = summary.drop(['case_id', 'Role', 'Context', 'Vulcan_Local',
+						 'Vulcan_Pancancer', 'Project', 'sample',
+						 'Hugo_Symbol'
+						],
+						 axis=1
+						)
 
 	alts['snv']  = alts['Variant_Classification'] != 'None'
 	alts['scna'] = alts['copy_number'] != 'None'
@@ -157,11 +161,11 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 #TODO: refactor this in two methods?
 def report_patients_alterations_boxplot(summary: pd.DataFrame, where_to_save:str):
 
-	patients_alterations = summary.drop(['Variant_Classification', 
-										'VAF','Role', 'Context',
-										'copy_number','sample'
+	patients_alterations = summary.drop(['Variant_Classification', 'Role',
+										 'Context', 'copy_number','sample'
 										],
-										axis=1)
+										axis=1
+										)
 	
 	in_local	 = patients_alterations['Vulcan_Local']
 	in_pancancer = patients_alterations['Vulcan_Pancancer']

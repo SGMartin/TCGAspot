@@ -9,6 +9,8 @@ import sys
 
 import pandas as pd
 
+pd.set_option('mode.chained_assignment', None) #TODO: line get_consensus_from_dupl
+
 def main(input_maf:str, input_cnv:str, cancer_census:str, 
 	     context_translation:str, where_to_save: str, where_to_save_metrics:str):
 
@@ -44,9 +46,21 @@ def main(input_maf:str, input_cnv:str, cancer_census:str,
 	context_translated_tcga['Consequence'] = context_translated_tcga.apply(func=annotate_gof_lof,
 																		   axis='columns'
 																		   )
-	# clean inconsistent alterations
-	tcga_func_annotated = delete_inconsistent_alterations(context_translated_tcga)
 
+	# Resolve conflicts arising from genes with multiple alterations
+	tcga_conflicts_resolved = get_consensus_from_duplicates(context_translated_tcga)
+
+	# clean inconsistent alterations
+	tcga_func_annotated = delete_inconsistent_alterations(tcga_conflicts_resolved)
+
+	#TODO: these could be kept depending on user config
+	# Drop rows which won't be used anymore
+	tcga_func_annotated = tcga_func_annotated.drop(['Chromosome', 'Start_Position',
+							      					'End_Position', 'VAF',
+													'priority'
+							     					],
+							 						axis=1,
+							  					   )
 	# SAVING #
 	tcga_func_annotated.to_csv(where_to_save, sep=',', index=False)
 	
@@ -157,11 +171,40 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 		if is_missense:
 			if is_oncogene & (tcga_data['VAF'] >= 0.2):
 				result = 'GoF'
-			else:
+			else:	#TODO: Maybe include ONLY missense ON suppressors
 				if tcga_data['VAF'] >= 0.7:
 					result = 'LoF'
 
 	return result
+
+def get_consensus_from_duplicates(tcga_data: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Retrieves genes with multiple hits and therefore multiple consequences
+	predictions and returns a consensus of all of them. Criteria is
+	LoF > GoF > Unknown meaning that a single LoF prediction overrides other
+	values and so on
+	'''
+	
+	# Drop cases where all predictions for a gene are the same
+	pre_filtered = tcga_data.drop_duplicates(subset=['Hugo_Symbol', 'case_id',
+									  				'Project', 'sample',
+									  				'Consequence'
+									 				], 
+							 				 keep='first'
+							  				)
+
+	priorities = {'LoF': 2, 'GoF': 1, 'Unknown': 0}
+
+	pre_filtered['priority'] = pre_filtered['Consequence'].map(priorities)
+	
+	# Get row ID of those alterations with the highest priority after grouping
+	alts_to_keep = pre_filtered.groupby(['Hugo_Symbol', 'case_id',
+										 'Project', 'sample'
+										]
+									   )['priority'].transform(max) == pre_filtered['priority']
+	
+	filtered = pre_filtered[alts_to_keep]
+	return filtered
 
 
 def delete_inconsistent_alterations(tcga_data: pd.DataFrame) -> pd.DataFrame:
