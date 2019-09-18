@@ -97,7 +97,6 @@ rule generate_cases_table:
 		rules.filter_maf_files.output.filtered_maf,
 		rules.filter_cnv_files.output.filtered_cnv,
 		'reference/CancerGeneCensus.tsv',
-		'reference/tcga-vulcan.tsv'
 	output:
 		OUTDIR + '/MERGED/{project}/cases_table.csv',
 		OUTDIR + '/MERGED/{project}/cases_table_metrics.csv'
@@ -112,10 +111,10 @@ rule generate_cases_table:
 rule vulcanspot_annotation:
 	input:
 		OUTDIR + '/MERGED/{project}/cases_table.csv',
+		'reference/tcga-vulcan.tsv',
 		'reference/generated/vulcan_db.csv'
 	output:
 		OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv'
-	
 	threads:
 		get_resource('vulcanspot_annotation', 'threads')
 	resources:

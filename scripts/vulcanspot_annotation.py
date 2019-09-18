@@ -11,16 +11,32 @@ import sys
 
 import pandas as pd
 
-def main(input_alterations: str, vulcan_db: str,
+def main(input_alterations: str, context_translation: str, vulcan_db: str,
 		 where_to_save:str):
 
 
 	tcga_data   = pd.read_csv(input_alterations, sep=',')
-	
-	vulcan_annotated_tcga = annotate_vulcan_data(vulcan_db, tcga_data)
+
+	# Assign TCGA projects to a suitable CCLE context and annotate alterations
+	ccle_translated_tcga = translate_tcga_ccle_tissues(context_translation, tcga_data)
+	vulcan_annotated_tcga = annotate_vulcan_data(vulcan_db, ccle_translated_tcga)
 
 	vulcan_annotated_tcga.to_csv(where_to_save, sep=',', index=False)
 
+
+
+def translate_tcga_ccle_tissues(context_translation: str,
+								tcga_data: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Translates from TCGA project names to the most suitable VulcanSpot context
+	based on an external equivalence table built manually.
+	'''
+	context_translation = pd.read_csv(context_translation, sep='\t')
+	context_translation = context_translation.set_index('TCGA')['Vulcanspot'].to_dict()
+
+	tcga_data['Context']      = tcga_data['Project'].map(context_translation)
+
+	return tcga_data
 
 
 def annotate_vulcan_data(vulcan_table: str,
@@ -78,4 +94,4 @@ def annotate_vulcan_data(vulcan_table: str,
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3])
+	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])

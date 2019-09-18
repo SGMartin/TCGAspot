@@ -11,8 +11,8 @@ import pandas as pd
 
 pd.set_option('mode.chained_assignment', None) #TODO: line get_consensus_from_dupl
 
-def main(input_maf:str, input_cnv:str, cancer_census:str, 
-	     context_translation:str, where_to_save: str, where_to_save_metrics:str):
+def main(input_maf:str, input_cnv:str, cancer_census:str, where_to_save: str,
+		 where_to_save_metrics:str ):
 
 	# Loading input dataframes #
 	maf_to_merge = pd.read_csv(input_maf,
@@ -39,16 +39,13 @@ def main(input_maf:str, input_cnv:str, cancer_census:str,
 	annotated_tcga			 = annotate_cancer_gene_census(cancer_census,
 												   	       merged_alterations
 														   )
-	context_translated_tcga  = translate_tcga_ccle_tissues(context_translation,
-														   annotated_tcga
-														  )
 	# Classify alterations in GoF/LoF/Unknown
-	context_translated_tcga['Consequence'] = context_translated_tcga.apply(func=annotate_gof_lof,
-																		   axis='columns'
-																		   )
+	annotated_tcga['Consequence'] = annotated_tcga.apply(func=annotate_gof_lof,
+														 axis='columns'
+														 )
 
 	# Resolve conflicts arising from genes with multiple alterations
-	tcga_conflicts_resolved = get_consensus_from_duplicates(context_translated_tcga)
+	tcga_conflicts_resolved = get_consensus_from_duplicates(annotated_tcga)
 
 	# clean inconsistent alterations
 	tcga_func_annotated = delete_inconsistent_alterations(tcga_conflicts_resolved)
@@ -117,20 +114,6 @@ def annotate_cancer_gene_census(cancer_census, merged_alterations) -> pd.DataFra
 	
 	del cancer_gene_census
 	return merged_alterations
-
-
-def translate_tcga_ccle_tissues(context_translation: str,
-								tcga_data: pd.DataFrame) -> pd.DataFrame:
-	'''
-	Translates from TCGA project names to the most suitable VulcanSpot context
-	based on an external equivalence table built manually.
-	'''
-	context_translation = pd.read_csv(context_translation, sep='\t')
-	context_translation = context_translation.set_index('TCGA')['Vulcanspot'].to_dict()
-
-	tcga_data['Context']      = tcga_data['Project'].map(context_translation)
-
-	return tcga_data
 
 
 def annotate_gof_lof(tcga_data: pd.Series) -> str:
@@ -261,5 +244,4 @@ def generate_metrics(raw_tcga_data: pd.DataFrame,
 if __name__ == "__main__":
 	main(
 	     sys.argv[1], sys.argv[2], sys.argv[3],
-		 sys.argv[4], sys.argv[5], sys.argv[6]
-		 )
+		 sys.argv[4], sys.argv[5])
