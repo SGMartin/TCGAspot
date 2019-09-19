@@ -9,33 +9,55 @@ Purpose: Get a local copy of vulcan db.
 import pandas as pd
 import requests
 
+#TODO: Optimize queries. Recycle gene lists
 def main():
 
 	# Snakemake workflow var.
-	where_to_save = snakemake.output[0]
+	genes_table_dir  = snakemake.output[0]
+	vulcan_table_dir = snakemake.output[1]
 
-	v_table = build_vulcan_database()
-	v_table.to_csv(where_to_save, sep=',', index=False)
+	genes_table  = build_vulcan_genes_database()
+	genes_table.to_csv(genes_table_dir, sep=',', index=False)
+	
+	del genes_table
+
+	vulcan_table = build_vulcan_database()
+	vulcan_table.to_csv(vulcan_table_dir, sep=',', index=False)
 
 
+def build_vulcan_genes_database() -> pd.DataFrame:
+
+	rows = list()
+
+	a_genes = get_available_gene_list('A')
+	b_genes = get_available_gene_list('B')
+	
+	all_genes = a_genes + b_genes
+
+	for gene in all_genes:
+		print('Getting details for',gene)
+		gene_details = get_gene_details(gene)
+		rows.append(gene_details)
+	
+	genes_table = pd.concat([pd.DataFrame([i], columns=['gene', 'gscore', 'druggable']) for i in rows], ignore_index=True)
+
+	genes_table['A'] = genes_table['gene'].isin(a_genes)
+	genes_table['B'] = genes_table['gene'].isin(b_genes)
+
+	return genes_table
+
+	
 def build_vulcan_database() -> pd.DataFrame:
 
 	VulcanTable = pd.DataFrame(columns=['geneA','tissue','alteration',
 										'geneB', 'drug', 'Dscore', 'LINCS']
 							  )
-
-	genes_of_interest = list()
-
-	response = requests.get('http://vulcanspot.org/api/genes?class=A').json()
-
-	for gene in response['data']:
-		genes_of_interest.append(gene['key'])
+	genes_of_interest = get_available_gene_list('A')
 
 	total_gene_count = len(genes_of_interest)
 	queried = 1
 
 	for a_gene in genes_of_interest:
-
 		
 		print('Querying', queried, ' of', total_gene_count)
 
@@ -87,6 +109,37 @@ def build_vulcan_database() -> pd.DataFrame:
 
 	return VulcanTable
 			
+def get_available_gene_list(gene_class:str = 'A') ->list():
+	'''
+	Returns a list of available genes of a certain class in VulcanSpot. gene_class
+	can be either A or B. Defaults to A. 
+	'''
+	list_of_genes = list()
+	
+	vulcan_request = F'http://vulcanspot.org/api/genes?class={gene_class}'
+	
+	vulcan_request = requests.get(vulcan_request).json()
+
+	for gene in vulcan_request['data']:
+		list_of_genes.append(gene['key'])
+	
+	return list_of_genes
+
+def get_gene_details(input_gene: str) -> dict():
+	'''
+	Asks VulcanSpot for a certain gene details and returns a dictionary of 
+	key-value pairs with relevant info.
+	'''
+	gene_details = dict()
+
+	query = F'http://vulcanspot.org/api/genes/{input_gene}'
+	response = requests.get(query).json()
+	
+	gene_details['gene'] 	  = response['data'][0]['symbol']
+	gene_details['gscore']	  = response['data'][0]['score']
+	gene_details['druggable'] = response['data'][0]['druggable']
+
+	return gene_details
 
 
 if __name__ == "__main__":

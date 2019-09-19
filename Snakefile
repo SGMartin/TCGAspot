@@ -44,7 +44,8 @@ rule all:
 rule rebuild_vulcan_database:
 	input:
 	output:
-		"reference/generated/vulcan_db.csv"
+		"reference/generated/vulcan_gene_db.csv",
+		"reference/generated/vulcan_treatments_db.csv"
 	threads: 
 		get_resource('rebuild_vulcan_database', 'threads')
 	resources:
@@ -112,7 +113,7 @@ rule vulcanspot_annotation:
 	input:
 		OUTDIR + '/MERGED/{project}/cases_table.csv',
 		'reference/tcga-vulcan.tsv',
-		'reference/generated/vulcan_db.csv'
+		'reference/generated/vulcan_treatments_db.csv'
 	output:
 		OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv'
 	threads:
