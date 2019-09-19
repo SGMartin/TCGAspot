@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """
-Section: SL in TCGA data
-
-Purpose: Generate a table of genetic alterations based on CNV and MAF data
-from the TCGA. Patients genetic landscape is inferred from these sources.
+Patientes table module: This script merges alterations from filtered MAF and CNV
+files on a cases basis. It then annotates all alterations using Cosmic's Cancer
+Gene Census and attempts to predict the functional impact of each one based on
+VulcanSpot criteria.
 """
+
 import sys
 
 import pandas as pd

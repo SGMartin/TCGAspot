@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-
 """
-Section: SL in TCGA data
-
-Purpose: Annotate merged CNV and maf with data from Cancer Gene Census
-and SL identified by VulcanSpot.
+VulcanSpot annotation module: This script uses a local copy of VulcanSpot 
+database (shipped with the pipeline) to annotate genetic alterations present
+in VulcanSpot. Vulcan_Local and Vulcan_Pancancer refer to either SLs 
+relationships found on cell lines representative of the case's tumor OR to 
+SLs relationships found on the pancancer cohor.
 """
+
 
 import sys
 

@@ -1,3 +1,8 @@
+'''
+Affy translation module: This scripts generates a new master table to translate
+ENSEMBL id to Hugo Symbol. It shouldn't be run on an analysis basis and is 
+included for completeness purposes.
+'''
 import mygene
 import pandas as pd
 

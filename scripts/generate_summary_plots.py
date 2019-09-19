@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+'''
+Summary plot module: This scripts uses seaborn package to generate various
+plots. It is run after data from generate_patients_table module is annotated
+by vulcanspot_annotation module.
+'''
 
 import sys
 

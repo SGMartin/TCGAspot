@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 
 """
-Section: SL in TCGA data
-
-Purpose: Get a local copy of vulcan db. 
-
+Vulcan database module: This scripts creates a local copy of a subset of 
+VulcanSpot's database using a restful API. It might take a while to do so, but
+on the other hand this module should be run only occasinally, when the local 
+copy shipped with the pipeline is outdated.
 """
 import pandas as pd
 import requests
