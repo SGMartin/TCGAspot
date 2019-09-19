@@ -275,14 +275,14 @@ def generate_report_metrics(rcnv: pd.DataFrame, acnv: pd.DataFrame) -> pd.DataFr
 	#  Report metrics #
 	raw_cases            = len(rcnv.columns) 
 	raw_cases 			-= 3 # accounting for the gene id, cytoband and ensembl cols.
-	raw_alterations 	 = len(rcnv.index)
+	raw_alterations 	 = len(rcnv.index) * raw_cases
 	
 	filtered_cases		 = acnv['case_id'].nunique()
 	filtered_alterations = len(acnv.index)
 
 	report = {'Item':['cases',
 					  'cases_filtered',
-					  'alterations',
+					  'alterations_considered',
 					  'alterations_filtered'
 					  ],
 			  'Count':[raw_cases,
