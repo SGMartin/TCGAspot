@@ -10,52 +10,40 @@ import pandas as pd
 
 def main(summary: str, vulcan_treatments_db: str):
 
-	tcga_summary = pd.read_csv(summary, sep=',', usecols=['geneA', 'tissue',
-							   							  'alteration', 'drug',
-												          'Dscore', 'LINCS'
+	# Build a drugs dataframe for the plots
+	drug_summary = pd.read_csv(summary, sep=',', usecols=['case_id','Project',
+														  'Hugo_Symbol',
+														  'Consequence',
+														  'Context',
+														  'Vulcan_Local',
+														  'Vulcan_Pancancer'
 														  ])
-
-
-def plot_lincs_and_pandrugs(summary: pd.DataFrame, vulcan_treatments_db:str):
-	'''
-	Plots the amount of drugs prescribed using PanDrugs vs those coming from
-	LINCS at the project level.
-	'''
-
-	vulcan_treatments = pd.read_csv(vulcan_treatments_db, sep=',')
-
-	# Count patients by TCGA project
-	patient_count = summary.groupby('Project')['case_id'].nunique()
-
-	# Get all druggable alterations
-	summary_druggable = summary[summary['Vulcan_Local'] | summary['Vulcan_Pancancer']]
-
-	summary_druggable.drop(['Variant_Classification', 'sample',
-							'copy_number', 'Role',
-							], 
-							axis=1,
-							inplace=True
-							)
 	
-	# Select treatments for druggable, affected genes.
-	genes_of_interest = summary_druggable['Hugo_Symbol'].unique()
-	vulcan_treatments = vulcan_treatments[vulcan_treatments['geneA'].isin(genes_of_interest)]
+	vulcan_drugs_db = pd.read_csv(vulcan_treatments_db, sep=',')
 
-	patients_matched_tissue_treatments = pd.merge(left=summary_druggable,
-							    				  right=vulcan_treatments,
-												  how='left',
-												  left_on=['Hugo_Symbol', 'Consequence', 'Context'],
-												  right_on=['geneA', 'alteration', 'tissue']
-												  )
+	# We have to split this operations in two parts to keep mem. usage low
+	# Add matched tissue drugs first
+	drugs_local_summary = pd.merge(left=drug_summary[drug_summary['Vulcan_Local']],
+								   right=vulcan_drugs_db,
+								   how='left',
+								   left_on=['Hugo_Symbol', 'Consequence', 'Context'],
+								   right_on=['geneA', 'alteration', 'tissue']
+								   )
+
+	drugs_local_summary['has_dscore'] = drugs_local_summary['Dscore'] > 0
+	drugs_local_summary['has_lincs']  = drugs_local_summary['LINCS'] > 0
+
+	tcga_drug_summary = drugs_local_summary.groupby('Project')['has_dscore',
+															   'has_lincs'
+															  ].sum()
+
+	tcga_drug_summary 		  = pd.DataFrame(tcga_drug_summary).reset_index()
+	tcga_drug_summary.columns = ['project',
+								 'pandrugs_based_local',
+								 'lincs_based_local'
+								]
 	
-
-
-
 	
-
-
-
-
 
 if __name__ == "__main__":
 	main(sys.argv[1:])
