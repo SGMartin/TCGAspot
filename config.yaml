@@ -1,5 +1,5 @@
 projects : 'projects.tsv'                                      # TCGA projects to parse
-inputdir : '/home/sagarcia/Documents/TFM/RAW/testing'          # Where to look for said projects
+inputdir : '/home/sagarcia/Documents/TFM/RAW/PAN-TCGA'          # Where to look for said projects
 outdir   : '/home/sagarcia/Documents/TFM/GENERATED/TCGA'       # Where to save resutls
 logdir   : 'log/test'                                          # Where to save events log.
 
@@ -13,10 +13,13 @@ rules:
     # single threaded. There is no advantage to more threads. Memory can
     # be tweaked though.
 
-    rebuild_vulcan_database:    # Requires internet connection
+    rebuild_vulcan_database:      # Requires internet connection
         threads: 1
         mem:  2048
     rebuild_snp_array_dictionary: # Requires internet connection
+        threads: 1
+        mem: 2048
+    rebuild_rnaseq_dictionary:    # Requires internet connection
         threads: 1
         mem: 2048
     filter_maf_files: 

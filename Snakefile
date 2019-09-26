@@ -65,6 +65,18 @@ rule rebuild_snp_array_dictionary:
 	script:
 		"./scripts/get_affy_translation.py"
 
+rule rebuild_rnaseq_dictionary:
+	input:
+		"reference/RNAseq_transcripts.csv"
+	output:
+		"reference/generated/RNAseq_transcripts_translation.csv"
+	threads:
+		get_resource('rebuild_rnaseq_dictionary', 'threads')
+	resources:
+		mem=get_resource('rebuild_rnaseq_dictionary', 'mem')
+	script:
+		"./scripts/get_rnaseq_translation.py"
+		
 rule filter_maf_files:
 	input:
 		get_maf_file
