@@ -28,6 +28,9 @@ rules:
     filter_cnv_files:
         threads: 1
         mem: 2048
+    filter_mrna_files:
+        threads: 1
+        mem: 2048
     generate_cases_table:
         threads: 1
         mem: 2048

@@ -35,11 +35,16 @@ def get_cnv_file(wildcards):
 	project_dir = f'{INDIR}/CNV/' + wildcards.project + '/*focal_score_by_genes.txt'
 	return glob.glob(project_dir)
 
+def get_mrna_file(wildcards):
+	project_dir = f'{INDIR}/MRNA/' + wildcards.project + '/*htseq_fpkm.tsv'
+	return glob.glob(project_dir)
+
 #### RULES ####
 
 rule all:
 	input:
-		OUTDIR + '/PLOTS/cases_druggable.svg'
+	#	OUTDIR + '/PLOTS/cases_druggable.svg'
+		expand(OUTDIR + '/MRNA/{project}/{project}_expr_filtered.csv', project=PROJECTS)
 		
 rule rebuild_vulcan_database:
 	input:
@@ -105,6 +110,19 @@ rule filter_cnv_files:
 	shell:
 		"./scripts/cnv_filter.py {input} {output}"
 
+rule filter_mrna_files:
+	input:
+		get_mrna_file,
+		mrna_db  = 'reference/generated/RNAseq_transcripts_translation.csv'
+	output:
+		filtered_expression = OUTDIR + '/MRNA/{project}/{project}_expr_filtered.csv'
+	threads:
+		get_resource('filter_expression_mrna_files', 'threads')
+	resources:
+		mem=get_resource('filter_mrna_files', 'mem')
+	shell:
+		"./scripts/expression_filter.py {input} {output}"
+	
 rule generate_cases_table:
 	input:
 		rules.filter_maf_files.output.filtered_maf,
