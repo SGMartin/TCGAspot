@@ -9,6 +9,7 @@ downstream.
 An exhaustive analysis will be added later.
 """
 
+import json
 import sys
 
 import pandas as pd
@@ -22,7 +23,7 @@ from scipy.stats import zscore
 #TODO: Multisampling.
 #TODO: Prepare the filter for future annotations.txt file being published
 
-def main(raw_expression_data: str, rna_seq_dict:str, where_to_save:str):
+def main(raw_expression_data: str, rna_seq_dict:str, metadata:str, where_to_save:str):
 
 	# Load expr data
 	raw_expression_data = pd.read_csv(raw_expression_data,
@@ -36,9 +37,11 @@ def main(raw_expression_data: str, rna_seq_dict:str, where_to_save:str):
 	filtered_expression = zscore_filtered.append(absolute_filtered, ignore_index=True)
 	filtered_expression.drop_duplicates(keep='first', inplace=True)
 
-	annotated_expression = filter_known_transcripts(filtered_expression, rna_seq_dict)
+	expression_annotated_transcripts = filter_known_transcripts(filtered_expression, rna_seq_dict)
+	expression_metadata_annotated = annotate_from_metadata(expression_annotated_transcripts, metadata)
 
-	annotated_expression.to_csv(where_to_save, sep=',', index=False)
+	expression_metadata_annotated.to_csv(where_to_save, sep=',', index=False)
+
 
 def filter_by_zscore(raw_data: pd.DataFrame) -> pd.DataFrame:
 	'''
@@ -120,5 +123,87 @@ def filter_known_transcripts(melted_data: pd.DataFrame, rna_dict: str):
 	return melted_data
 
 
+#TODO: refactor this
+
+def annotate_from_metadata(melted_expression: pd.DataFrame, metadata:str) -> pd.DataFrame:
+	'''
+	Annotates melted expression using metadata. It uses TCGA barcode to extract 
+	case_id, aliquot and sample type. Returns melted expression data with case_id,
+	sample and aliquot columns.
+	'''
+	
+	# Getting case id from samples
+	annotated_cases  = get_case_from_sample(melted_expression, metadata)
+
+	# Get tumor type from barcode
+	annotated_cases['sample'] = translate_barcode_to_tumor(annotated_cases['aliquot'])
+
+	# Rename aliquot from barcode to aliquot letter
+	annotated_cases['aliquot'] = annotated_cases['aliquot'].str.split('-').str[3].str[2]
+
+	return annotated_cases
+
+def get_case_from_sample(input_expr: pd.DataFrame, metadata: str) -> pd.DataFrame:
+	'''
+	Translates samples ID to case UUID using metadata. Observations are
+	named after alliquots. Returns a dataframe with a new column called
+	case_id
+	'''
+	
+	with open(metadata) as metadata_file:
+		raw_metadata = json.load(metadata_file)
+	
+	patient_barcodes = dict()
+
+	for project in raw_metadata:
+		for patients in project['associated_entities']:
+
+			trimmed_barcode = patients['entity_submitter_id'].split('-')[0:4]
+			trimmed_barcode = '-'.join(trimmed_barcode)
+			patient_barcodes[trimmed_barcode] = patients['case_id']
+	
+	# map is faster than rename for large amounts of data, so we'll use that
+	input_expr['case_id'] = input_expr['aliquot'].map(patient_barcodes,
+													  na_action='ignore'
+													  )	
+	del raw_metadata
+	return input_expr
+
+def translate_barcode_to_tumor(barcode:str) -> str:
+	'''
+	Translates tumor barcode to sample type according to
+	https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/sample-type-codes
+	'''
+	CodesDictionary = {
+        "01":"TP",
+        "02":"TR",
+        "03":"TB",
+        "04":"TRBM",
+        "05":"TAP",
+        "06":"TM",
+        "07":"TAM",
+        "08":"THOC",
+        "09":"TBM",
+        "10":"NB",
+        "11":"NT",
+        "12":"NBC",
+        "13":"NEBV",
+        "14":"NBM",
+        "15":"15SH",
+        "16":"16SH",
+        "20":"CELLC",
+        "40":"TRB",
+        "50":"CELL",
+        "60":"XP",
+        "61":"XCL",
+        "99":"99SH"
+    }
+
+	sampleCode = str(barcode).split('-')
+	doubleDigit = sampleCode[3][0:2]
+	
+	return CodesDictionary[doubleDigit]
+
+
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3])	
+	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])	

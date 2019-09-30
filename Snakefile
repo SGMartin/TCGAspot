@@ -113,11 +113,12 @@ rule filter_cnv_files:
 rule filter_mrna_files:
 	input:
 		get_mrna_file,
-		mrna_db  = 'reference/generated/RNAseq_transcripts_translation.csv'
+		mrna_db  = 'reference/generated/RNAseq_transcripts_translation.csv',
+		metadata = INDIR + '/METADATA/cnv_metadata.json'
 	output:
 		filtered_expression = OUTDIR + '/MRNA/{project}/{project}_expr_filtered.csv'
 	threads:
-		get_resource('filter_expression_mrna_files', 'threads')
+		get_resource('filter_mrna_files', 'threads')
 	resources:
 		mem=get_resource('filter_mrna_files', 'mem')
 	shell:
