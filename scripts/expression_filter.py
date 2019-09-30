@@ -13,55 +13,89 @@ import sys
 
 import pandas as pd
 import numpy  as np
+
 from scipy import stats
 from scipy.stats import zscore
 
 #TODO: Implement an exhaustive filter to tackle multiple transcripts assigned
 # to the same gene.
 #TODO: Multisampling.
-#TODO: Prepare the filter for future annotations.file being published
+#TODO: Prepare the filter for future annotations.txt file being published
 
 def main(raw_expression_data: str, rna_seq_dict:str, where_to_save:str):
 
 	# Load expr data
-	raw_expression_data = pd.read_csv(raw_expression_data, sep='\t')
+	raw_expression_data = pd.read_csv(raw_expression_data,
+									  sep='\t',
+									  index_col='Ensembl_ID'
+									  )
 
-	# Calculate zscore and melt data for easier manipulation
-	# melted_data   = melt_zscore(raw_expression_data)
-	melted_data   = calculate_zscore(raw_expression_data)
-	filtered_data = get_upper_standard_deviation_expression(melted_data)
+	zscore_filtered   = filter_by_zscore(raw_expression_data)
+	absolute_filtered = filter_absolute_values(raw_expression_data)
+
+	filtered_expression = zscore_filtered.append(absolute_filtered, ignore_index=True)
+	filtered_expression.drop_duplicates(keep='first', inplace=True)
+
+	annotated_expression = filter_known_transcripts(filtered_expression, rna_seq_dict)
+
+	annotated_expression.to_csv(where_to_save, sep=',', index=False)
+
+def filter_by_zscore(raw_data: pd.DataFrame) -> pd.DataFrame:
+	'''
+	This method takes input raw expression data and calculates a zscore for
+	each transcript across all patients. Transcript with 0 STD are not considered.
+	Returns a melted dataframe with aliquots and transcripts whose Zscore is
+	above 2
+	'''
+
+	# Get STDs as a numpy array. Way faster
+	stds  = raw_data.values.std(axis=1)
 	
-	# Annotate transcripts using the table and save it
-	annotated_data = filter_known_transcripts(filtered_data, rna_seq_dict)
+	# Drop entries with 0 STD. Won't be considered.
+	invalid_entries = stds.__eq__(0)
+	valid_data  	= raw_data[~invalid_entries]
+
+	# Get Z scores
+	zscores = zscore(valid_data.values, axis=1)
+
+	zscores = pd.DataFrame(zscores,
+						   index=valid_data.index,
+						   columns=valid_data.columns
+						   )
 	
-	del raw_expression_data
-	del melted_data
-	del filtered_data
+	zscores.reset_index(inplace=True)
 
-	annotated_data.to_csv(where_to_save, sep=',', index=False)
-
-
-def get_upper_standard_deviation_expression(melted_data: pd.DataFrame) -> pd.DataFrame:
-	'''
-	This method takes melted expression data and filters it according to it's
-	zscore
-	'''
-	melted_data['over_threshold'] = melted_data['expression'] > 2
-
-	return melted_data[melted_data['over_threshold']]
-
-def calculate_zscore(raw_data: pd.DataFrame) -> pd.DataFrame:
-	'''
-	This method takes input raw expresson data and calculates a zscore for
-	each transcript across all patients. Then it melts the data and returns
-	it.
-	'''
-	print('calculating Z-score')
-
-	melted_data = raw_data.melt(id_vars=['Ensembl_ID'],
-								var_name='aliquot',
-								value_name='expression')
+	zscores = zscores.melt(id_vars='Ensembl_ID',
+						   var_name='aliquot',
+						   value_name='zscore')
 	
+	# Select those over 2
+	zscores = zscores[zscores['zscore'] > 2]
+
+	# drop column and return
+	zscores.drop('zscore', axis=1, inplace=True)
+
+	del valid_data
+	return zscores
+
+
+def filter_absolute_values(raw_data: pd.DataFrame) -> pd.DataFrame:
+	'''
+	Filters raw expression data, looking for transcripts whose expression
+	value is over 4 for a certain aliquot. Returns a melted dataframe with
+	transcripts satisfying the condition.
+	'''
+
+	melted_data = raw_data.reset_index().melt(id_vars='Ensembl_ID',
+											  var_name='aliquot',
+											  value_name='expression'
+											  )
+	
+	melted_data = melted_data[melted_data['expression'] > 4]
+
+	melted_data.drop('expression', axis=1, inplace=True)
+
+	return melted_data
 
 
 def filter_known_transcripts(melted_data: pd.DataFrame, rna_dict: str):
@@ -69,19 +103,19 @@ def filter_known_transcripts(melted_data: pd.DataFrame, rna_dict: str):
 	Attempt to match Ensembl_ID transcripts to known genes. Returns a dataframe
 	with matched pairs.
 	'''
-	print('filtering known transcripts')
 	rna_translation = pd.read_csv(rna_dict, sep=',', index_col='Ensembl_ID')
-	rna_translation = rna_translation.to_dict()
+	rna_translation = rna_translation['Hugo_Symbol'].to_dict()
 
 	# get rid of ensembl version number and attempt the map
 	melted_data['Ensembl_ID'] = melted_data['Ensembl_ID'].str.split('.').str[0].str.strip()
 	melted_data['Hugo_Symbol'] = melted_data['Ensembl_ID'].map(rna_translation)
-	print(melted_data)
 	
 	# get transcripts which did not match
 	melted_data.dropna(axis='index', how='any', inplace=True)
-	print(melted_data)
-	
+
+	# Drop Ensembl column, it is not needed anymore
+	melted_data.drop('Ensembl_ID', axis=1, inplace=True)
+
 	del rna_translation
 	return melted_data
 

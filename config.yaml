@@ -30,7 +30,7 @@ rules:
         mem: 2048
     filter_mrna_files:
         threads: 1
-        mem: 2048
+        mem: 4096
     generate_cases_table:
         threads: 1
         mem: 2048
