@@ -43,8 +43,8 @@ def get_mrna_file(wildcards):
 
 rule all:
 	input:
-	#	OUTDIR + '/PLOTS/cases_druggable.svg'
-		expand(OUTDIR + '/MRNA/{project}/{project}_expr_filtered.csv', project=PROJECTS)
+		OUTDIR + '/PLOTS/cases_druggable.svg'
+		#expand(OUTDIR + '/MRNA/{project}/{project}_expr_filtered.csv', project=PROJECTS)
 		
 rule rebuild_vulcan_database:
 	input:
@@ -86,8 +86,8 @@ rule filter_maf_files:
 	input:
 		get_maf_file
 	output:
-		filtered_maf = OUTDIR + '/MAF/{project}/{project}_filtered.csv',
-		filtered_cnv = OUTDIR + '/MAF/{project}/{project}_metrics.csv'
+		filtered_maf         = OUTDIR + '/MAF/{project}/{project}_filtered.csv',
+		filtered_maf_metrics = OUTDIR + '/MAF/{project}/{project}_metrics.csv'
 	threads:
 		get_resource('filter_maf_files', 'threads')
 	resources:
@@ -130,8 +130,8 @@ rule generate_cases_table:
 		rules.filter_cnv_files.output.filtered_cnv,
 		'reference/CancerGeneCensus.tsv',
 	output:
-		OUTDIR + '/MERGED/{project}/cases_table.csv',
-		OUTDIR + '/MERGED/{project}/cases_table_metrics.csv'
+		cases_table         = OUTDIR + '/MERGED/{project}/cases_table.csv',
+		cases_table_metrics = OUTDIR + '/MERGED/{project}/cases_table_metrics.csv'
 	threads:
 		get_resource('generate_cases_table', 'threads')
 	resources:
@@ -139,10 +139,21 @@ rule generate_cases_table:
 	shell:
 		"./scripts/generate_patients_table.py {input} {output}"
 
+rule check_gain_of_function_events:
+	input:
+		rules.generate_cases_table.output.cases_table,
+		rules.filter_mrna_files.output.filtered_expression,
+	output:
+		cases_table_corrected = OUTDIR + '/MERGED/{project}/cases_table_corrected.csv'
+	threads:1
+	resources:
+		mem=2048
+	shell:
+		"./scripts/gain_of_function_correction.py {input} {output}"
 
 rule vulcanspot_annotation:
 	input:
-		OUTDIR + '/MERGED/{project}/cases_table.csv',
+		OUTDIR + '/MERGED/{project}/cases_table_corrected.csv',
 		'reference/tcga-vulcan.tsv',
 		'reference/generated/vulcan_treatments_db.csv'
 	output:
