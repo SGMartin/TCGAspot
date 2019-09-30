@@ -142,18 +142,21 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 	if has_cnv:
 		if tcga_data['copy_number'] == 'cnv_loss':
 			result = 'LoF'
-
 		else: # might be a GoF, check for somatic point mutations
-			if (is_truncated == False):
+			if not is_truncated and not is_missense and not is_oncogene:
 				result = 'GoF'
-			else:
+			elif not is_truncated and is_missense and is_oncogene:
+				result = 'GoF'
+			elif is_truncated & (tcga_data['VAF'] >=0.7):
 				result = 'LoF'
+			else:
+				result = 'Unknown'
 	else:
 		if is_truncated  & (tcga_data['VAF'] >= 0.7):
 			result = 'LoF'
 		
 		if is_missense:
-			if is_oncogene & (tcga_data['VAF'] >= 0.2):
+			if is_oncogene == True & (tcga_data['VAF'] >= 0.2):
 				result = 'GoF'
 			else:	#TODO: Maybe include ONLY missense ON suppressors
 				if tcga_data['VAF'] >= 0.7:
