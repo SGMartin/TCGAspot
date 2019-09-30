@@ -206,7 +206,6 @@ def delete_inconsistent_alterations(tcga_data: pd.DataFrame) -> pd.DataFrame:
 	return tcga_cleared
 
 #TODO: This could be refactored taking into account the above method.
-
 def generate_metrics(raw_tcga_data: pd.DataFrame,
 			         clean_tcga_data: pd.DataFrame) -> pd.DataFrame:
 	
