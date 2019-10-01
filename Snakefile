@@ -95,7 +95,7 @@ rule rebuild_gscore_database:
 	threads:
 		get_resource('rebuild_gscore_database', 'threads')
 	resources:
-		get_resource('rebuild_gscore_database', 'mem')
+		mem=get_resource('rebuild_gscore_database', 'mem')
 	shell:
 		"./scripts/calculate_gscores.py {input} {output}"		
 
@@ -172,7 +172,8 @@ rule vulcanspot_annotation:
 	input:
 		OUTDIR + '/MERGED/{project}/cases_table_corrected.csv',
 		'reference/tcga/tcga-vulcan.tsv',
-		'reference/generated/vulcan_treatments_db.csv'
+		'reference/generated/vulcan_treatments_db.csv',
+		'reference/generated/genes_gscore.csv'
 	output:
 		OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv'
 	threads:
