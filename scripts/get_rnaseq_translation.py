@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 '''
 RNAseq translation module: This scripts generates a new master table to translate
 ENSEMBL id to Hugo Symbol. It shouldn't be run on an analysis basis and is 
