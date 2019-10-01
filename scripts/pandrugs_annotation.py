@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 """
-Section: SL in TCGA data
-
-Purpose: Annotates filtered alterations used PanDrugs database.
+PanDrugs Annotation module:
 """
-
 import sys
 
 import pandas as pd
