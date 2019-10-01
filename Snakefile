@@ -60,7 +60,7 @@ rule rebuild_vulcan_database:
 
 rule rebuild_snp_array_dictionary:
 	input:
-		"reference/affy_SNP6.0_ensg.tsv"
+		"reference/tcga/affy_SNP6.0_ensg.tsv"
 	output:
 		"reference/generated/affy_snp_6.0_translation.csv"
 	threads:
@@ -72,7 +72,7 @@ rule rebuild_snp_array_dictionary:
 
 rule rebuild_rnaseq_dictionary:
 	input:
-		"reference/RNAseq_transcripts.csv"
+		"reference/tcga/RNAseq_transcripts.csv"
 	output:
 		"reference/generated/RNAseq_transcripts_translation.csv"
 	threads:
@@ -81,7 +81,23 @@ rule rebuild_rnaseq_dictionary:
 		mem=get_resource('rebuild_rnaseq_dictionary', 'mem')
 	script:
 		"./scripts/get_rnaseq_translation.py"
-		
+
+rule rebuild_gscore_database:
+	input:
+		"reference/gscore/hugo_all_genes.tsv",
+		"reference/gscore/TumorPortal.csv",
+		"reference/CancerGeneCensus.tsv",
+		"reference/gscore/srep02650-s3.csv",
+		"reference/gscore/gene_essentiality_score.tsv",
+		"reference/gscore/oncoscape_all_matrix_highscore.tsv"
+	output:
+		"reference/generated/genes_gscore.csv"
+	threads: 1
+	resources:
+		mem=2048
+	shell:
+		"./scripts/calculate_gscores.py {input} {output}"		
+
 rule filter_maf_files:
 	input:
 		get_maf_file
@@ -154,7 +170,7 @@ rule check_gain_of_function_events:
 rule vulcanspot_annotation:
 	input:
 		OUTDIR + '/MERGED/{project}/cases_table_corrected.csv',
-		'reference/tcga-vulcan.tsv',
+		'reference/tcga/tcga-vulcan.tsv',
 		'reference/generated/vulcan_treatments_db.csv'
 	output:
 		OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv'
