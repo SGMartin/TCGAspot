@@ -22,6 +22,9 @@ rules:
     rebuild_rnaseq_dictionary:    # Requires internet connection
         threads: 1
         mem: 2048
+    rebuild_gscore_database: 
+        threads: 1
+        mem: 2048
     filter_maf_files: 
         threads: 1 
         mem: 2048

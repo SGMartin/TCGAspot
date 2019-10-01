@@ -92,9 +92,10 @@ rule rebuild_gscore_database:
 		"reference/gscore/oncoscape_all_matrix_highscore.tsv"
 	output:
 		"reference/generated/genes_gscore.csv"
-	threads: 1
+	threads:
+		get_resource('rebuild_gscore_database', 'threads')
 	resources:
-		mem=2048
+		get_resource('rebuild_gscore_database', 'mem')
 	shell:
 		"./scripts/calculate_gscores.py {input} {output}"		
 
