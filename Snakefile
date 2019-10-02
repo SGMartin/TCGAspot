@@ -2,7 +2,7 @@ import glob
 import pandas as pd
 from snakemake.utils import min_version
 
-### Global parameters and config ###
+##### Global parameters and config #####
 min_version('5.4')
 
 configfile: "config.yaml"
@@ -13,7 +13,8 @@ LOGDIR   	   = config['logdir']
 PLOTDIR        = config['plotdir']
 PROJECTS	   = pd.read_csv(config['projects'], sep='\t')['Project'] #TODO: clean this up
 
-# Global scope functions
+
+##### Global scope functions #####
 
 #TODO: log the key error
 def get_resource(rule,resource):
@@ -40,108 +41,20 @@ def get_mrna_file(wildcards):
 	project_dir = f'{INDIR}/MRNA/' + wildcards.project + '/*htseq_fpkm.tsv'
 	return glob.glob(project_dir)
 
-#### RULES ####
+
+##### RULES #####
+
+## load rules ##
+include: 'rules/databases.smk'
+include: 'rules/filters.smk'
+include: 'rules/plots.smk'
 
 rule all:
 	input:
 		PLOTDIR + '/summary/alterations_classified_0.8.svg',
 		PLOTDIR + '/vulcanspot/cases_druggable.svg'
 		
-rule rebuild_vulcan_database:
-	input:
-	output:
-		"reference/generated/vulcan_gene_db.csv",
-		"reference/generated/vulcan_treatments_db.csv"
-	threads: 
-		get_resource('rebuild_vulcan_database', 'threads')
-	resources:
-		mem=get_resource('rebuild_vulcan_database', 'mem')
-	script:
-		"./scripts/get_vulcan_database.py"
 
-rule rebuild_snp_array_dictionary:
-	input:
-		"reference/tcga/affy_SNP6.0_ensg.tsv"
-	output:
-		"reference/generated/affy_snp_6.0_translation.csv"
-	threads:
-		get_resource('rebuild_snp_array_translation', 'threads')
-	resources:
-		mem=get_resource('rebuild_snp_array_translation', 'mem')
-	script:
-		"./scripts/get_affy_translation.py"
-
-rule rebuild_rnaseq_dictionary:
-	input:
-		"reference/tcga/RNAseq_transcripts.csv"
-	output:
-		"reference/generated/RNAseq_transcripts_translation.csv"
-	threads:
-		get_resource('rebuild_rnaseq_dictionary', 'threads')
-	resources:
-		mem=get_resource('rebuild_rnaseq_dictionary', 'mem')
-	script:
-		"./scripts/get_rnaseq_translation.py"
-
-rule rebuild_gscore_database:
-	input:
-		"reference/gscore/hugo_all_genes.tsv",
-		"reference/gscore/TumorPortal.csv",
-		"reference/CancerGeneCensus.tsv",
-		"reference/gscore/srep02650-s3.csv",
-		"reference/gscore/gene_essentiality_score.tsv",
-		"reference/gscore/oncoscape_all_matrix_highscore.tsv"
-	output:
-		"reference/generated/genes_gscore.csv"
-	threads:
-		get_resource('rebuild_gscore_database', 'threads')
-	resources:
-		mem=get_resource('rebuild_gscore_database', 'mem')
-	shell:
-		"./scripts/calculate_gscores.py {input} {output}"		
-
-rule filter_maf_files:
-	input:
-		get_maf_file
-	output:
-		filtered_maf         = TABLESDIR + '/MAF/{project}/{project}_filtered.csv',
-		filtered_maf_metrics = TABLESDIR + '/MAF/{project}/{project}_metrics.csv'
-	threads:
-		get_resource('filter_maf_files', 'threads')
-	resources:
-		mem=get_resource('filter_maf_files', 'mem')
-	shell:
-		"./scripts/maf_filter.py {input} {output}"
-
-rule filter_cnv_files:
-	input:
-		get_cnv_file,
-		metadata = INDIR + '/METADATA/cnv_metadata.json',
-		affy_db  = 'reference/generated/affy_snp_6.0_translation.csv'
-	output:
-		filtered_cnv 		 = TABLESDIR + '/CNV/{project}/{project}_cnv_filtered.csv',
-		filtered_cnv_metrics = TABLESDIR + '/CNV/{project}/{project}_metrics.csv'
-	threads:
-		get_resource('filter_cnv_files', 'threads')
-	resources:
-		mem=get_resource('filter_cnv_files', 'mem')
-	shell:
-		"./scripts/cnv_filter.py {input} {output}"
-
-rule filter_mrna_files:
-	input:
-		get_mrna_file,
-		mrna_db  = 'reference/generated/RNAseq_transcripts_translation.csv',
-		metadata = INDIR + '/METADATA/cnv_metadata.json'
-	output:
-		filtered_expression = TABLESDIR + '/MRNA/{project}/{project}_expr_filtered.csv'
-	threads:
-		get_resource('filter_mrna_files', 'threads')
-	resources:
-		mem=get_resource('filter_mrna_files', 'mem')
-	shell:
-		"./scripts/expression_filter.py {input} {output}"
-	
 rule generate_cases_table:
 	input:
 		rules.filter_maf_files.output.filtered_maf,
@@ -195,29 +108,4 @@ rule generate_summary:
 	shell:
 		"awk 'NR == 1 || FNR > 1' {input} > {output}"
 
-rule generate_summary_plots:
-	input:
-		rules.generate_summary.output.summary
-	output:
-		PLOTDIR + '/summary/alterations_classified_0.svg',
-		PLOTDIR + '/summary/alterations_classified_0.2.svg',	
-		PLOTDIR + '/summary/alterations_classified_0.4.svg',	
-		PLOTDIR + '/summary/alterations_classified_0.6.svg',	
-		PLOTDIR + '/summary/alterations_classified_0.8.svg'		
-	threads:
-		get_resource('generate_summary_plots', 'threads')
-	resources:
-		mem=get_resource('generate_summary_plots', 'mem')
-	shell:
-		"./scripts/generate_summary_plots.py {input} {PLOTDIR}/summary"
 
-rule generate_vulcanspot_plots:
-	input:
-		rules.generate_summary.output.summary
-	output:
-		PLOTDIR + '/vulcanspot/cases_druggable.svg',
-		PLOTDIR + '/vulcanspot/alterations_count_local.svg',
-		PLOTDIR + '/vulcanspot/alterations_count_pancancer.svg'
-	threads:1
-	shell:
-		"./scripts/generate_plots_vulcanspot.py {input} {PLOTDIR}/vulcanspot"
