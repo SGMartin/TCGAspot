@@ -11,7 +11,6 @@ import numpy   as np
 import seaborn as sns
 
 def main(summary: str, save_to:str):
-	print(save_to)
 	druggable_cases     	   = save_to + '/cases_druggable.svg'
 	alterations_count 		   = save_to + '/alterations_count'
 
@@ -107,7 +106,6 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 
 #TODO: refactor this in two methods?
 def report_patients_alterations_boxplot(summary: pd.DataFrame, where_to_save:str):
-	print(where_to_save)
 
 	patients_alterations = summary.drop(['Variant_Classification', 'Role',
 										 'Context', 'copy_number','sample'
