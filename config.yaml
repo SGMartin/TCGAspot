@@ -1,6 +1,7 @@
 projects : 'projects.tsv'                                      # TCGA projects to parse
-inputdir : '/home/sagarcia/Documents/TFM/RAW/PAN-TCGA'          # Where to look for said projects
-outdir   : '/home/sagarcia/Documents/TFM/GENERATED/TCGA'       # Where to save resutls
+inputdir : '/home/sagarcia/Documents/TFM/RAW/PAN-TCGA'         # Where to look for said projects
+tablesdir: '/home/sagarcia/Documents/TFM/generated/tcga'       # Where to save generated tables
+plotdir  : '/home/sagarcia/Documents/TFM/generated/tcga/plots' # Where to save plots
 logdir   : 'log/test'                                          # Where to save events log.
 
 rules:

@@ -8,8 +8,9 @@ min_version('5.4')
 configfile: "config.yaml"
 
 INDIR 		   = config['inputdir']
-OUTDIR  	   = config['outdir']
+TABLESDIR      = config['tablesdir']
 LOGDIR   	   = config['logdir']
+PLOTDIR        = config['plotdir']
 PROJECTS	   = pd.read_csv(config['projects'], sep='\t')['Project'] #TODO: clean this up
 
 # Global scope functions
@@ -43,8 +44,8 @@ def get_mrna_file(wildcards):
 
 rule all:
 	input:
-		OUTDIR + '/PLOTS/cases_druggable.svg'
-		#expand(OUTDIR + '/MRNA/{project}/{project}_expr_filtered.csv', project=PROJECTS)
+		PLOTDIR + '/summary/alterations_classified_0.8.svg',
+		PLOTDIR + '/vulcanspot/cases_druggable.svg'
 		
 rule rebuild_vulcan_database:
 	input:
@@ -103,8 +104,8 @@ rule filter_maf_files:
 	input:
 		get_maf_file
 	output:
-		filtered_maf         = OUTDIR + '/MAF/{project}/{project}_filtered.csv',
-		filtered_maf_metrics = OUTDIR + '/MAF/{project}/{project}_metrics.csv'
+		filtered_maf         = TABLESDIR + '/MAF/{project}/{project}_filtered.csv',
+		filtered_maf_metrics = TABLESDIR + '/MAF/{project}/{project}_metrics.csv'
 	threads:
 		get_resource('filter_maf_files', 'threads')
 	resources:
@@ -118,8 +119,8 @@ rule filter_cnv_files:
 		metadata = INDIR + '/METADATA/cnv_metadata.json',
 		affy_db  = 'reference/generated/affy_snp_6.0_translation.csv'
 	output:
-		filtered_cnv 		 = OUTDIR + '/CNV/{project}/{project}_cnv_filtered.csv',
-		filtered_cnv_metrics = OUTDIR + '/CNV/{project}/{project}_metrics.csv'
+		filtered_cnv 		 = TABLESDIR + '/CNV/{project}/{project}_cnv_filtered.csv',
+		filtered_cnv_metrics = TABLESDIR + '/CNV/{project}/{project}_metrics.csv'
 	threads:
 		get_resource('filter_cnv_files', 'threads')
 	resources:
@@ -133,7 +134,7 @@ rule filter_mrna_files:
 		mrna_db  = 'reference/generated/RNAseq_transcripts_translation.csv',
 		metadata = INDIR + '/METADATA/cnv_metadata.json'
 	output:
-		filtered_expression = OUTDIR + '/MRNA/{project}/{project}_expr_filtered.csv'
+		filtered_expression = TABLESDIR + '/MRNA/{project}/{project}_expr_filtered.csv'
 	threads:
 		get_resource('filter_mrna_files', 'threads')
 	resources:
@@ -147,8 +148,8 @@ rule generate_cases_table:
 		rules.filter_cnv_files.output.filtered_cnv,
 		'reference/CancerGeneCensus.tsv',
 	output:
-		cases_table         = OUTDIR + '/MERGED/{project}/cases_table.csv',
-		cases_table_metrics = OUTDIR + '/MERGED/{project}/cases_table_metrics.csv'
+		cases_table         = TABLESDIR + '/MERGED/{project}/cases_table.csv',
+		cases_table_metrics = TABLESDIR + '/MERGED/{project}/cases_table_metrics.csv'
 	threads:
 		get_resource('generate_cases_table', 'threads')
 	resources:
@@ -161,7 +162,7 @@ rule check_gain_of_function_events:
 		rules.generate_cases_table.output.cases_table,
 		rules.filter_mrna_files.output.filtered_expression,
 	output:
-		cases_table_corrected = OUTDIR + '/MERGED/{project}/cases_table_corrected.csv'
+		cases_table_corrected = TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv'
 	threads:1
 	resources:
 		mem=2048
@@ -170,12 +171,12 @@ rule check_gain_of_function_events:
 
 rule vulcanspot_annotation:
 	input:
-		OUTDIR + '/MERGED/{project}/cases_table_corrected.csv',
+		TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv',
 		'reference/tcga/tcga-vulcan.tsv',
 		'reference/generated/vulcan_treatments_db.csv',
 		'reference/generated/genes_gscore.csv'
 	output:
-		OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv'
+		TABLESDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv'
 	threads:
 		get_resource('vulcanspot_annotation', 'threads')
 	resources:
@@ -186,9 +187,9 @@ rule vulcanspot_annotation:
 #TODO: config for this?
 rule generate_summary:
 	input:
-		expand(OUTDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv', project=PROJECTS)
+		expand(TABLESDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv', project=PROJECTS)
 	output:
-		summary = OUTDIR + '/summary.csv'
+		summary = TABLESDIR + '/summary.csv'
 	resources:
 		mem=2048
 	shell:
@@ -198,14 +199,25 @@ rule generate_summary_plots:
 	input:
 		rules.generate_summary.output.summary
 	output:
-		OUTDIR + '/PLOTS/cases_druggable.svg',
-		OUTDIR + '/PLOTS/alterations_classified.svg',
-		OUTDIR + '/PLOTS/alterations_count_local.svg',
-		OUTDIR + '/PLOTS/alterations_count_pancancer.svg'
-	
+		PLOTDIR + '/summary/alterations_classified_0.svg',
+		PLOTDIR + '/summary/alterations_classified_0.2.svg',	
+		PLOTDIR + '/summary/alterations_classified_0.4.svg',	
+		PLOTDIR + '/summary/alterations_classified_0.6.svg',	
+		PLOTDIR + '/summary/alterations_classified_0.8.svg'		
 	threads:
 		get_resource('generate_summary_plots', 'threads')
 	resources:
 		mem=get_resource('generate_summary_plots', 'mem')
 	shell:
-		"./scripts/generate_summary_plots.py {input} {OUTDIR}/PLOTS"
+		"./scripts/generate_summary_plots.py {input} {PLOTDIR}/summary"
+
+rule generate_vulcanspot_plots:
+	input:
+		rules.generate_summary.output.summary
+	output:
+		PLOTDIR + '/vulcanspot/cases_druggable.svg',
+		PLOTDIR + '/vulcanspot/alterations_count_local.svg',
+		PLOTDIR + '/vulcanspot/alterations_count_pancancer.svg'
+	threads:1
+	shell:
+		"./scripts/generate_plots_vulcanspot.py {input} {PLOTDIR}/vulcanspot"
