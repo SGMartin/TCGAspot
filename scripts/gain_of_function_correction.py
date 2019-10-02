@@ -13,9 +13,6 @@ import pandas as pd
 #TODO: This module should grow once metrics and other checks are added. 
 
 def main(cases_table: str, expression_data: str, where_to_save:str):
-	'''
-
-	'''
 
 	# Load cases table for this project and its expression table
 	cases_table 	 = pd.read_csv(cases_table, sep=',')
@@ -58,14 +55,20 @@ def match_gof_to_expression(cases: pd.DataFrame, expression: pd.DataFrame) -> pd
 							 indicator=True
 							)
 
-	# keep alterations present ONLY in expr. data
-	overexpressed = overexpressed[overexpressed['_merge'] == 'both']
-	overexpressed.drop(labels=['_merge'],
-					   axis=1,
-					   inplace=True
-					  )
+	# _merge == 'both' 	    -> these cnv_gain are overexpressed
+	# _merge == 'left_only' -> present on cnv data but not overexpressed... apparently
+	# _merge == 'right_only -> remove for now, overexpressed data without cnv_gain events
+
+	overexpressed = overexpressed[~(overexpressed['_merge'] == 'right_only')]
+	unknown_cnvs  = overexpressed['_merge'] == 'left_only'
+	
+	overexpressed.loc[unknown_cnvs, 'Consequence'] = 'Unknown'	
+	
+	overexpressed.drop(labels=['_merge'], axis=1, inplace=True)
 
 	# remove checked alterations from original data
+	# TODO: Maybe this could be improved
+
 	cases = cases[~(gofs & absent_snv & has_cnv)]
 	cases = cases.append(overexpressed, ignore_index=True)
 
