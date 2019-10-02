@@ -59,7 +59,7 @@ rule generate_cases_table:
 	input:
 		rules.filter_maf_files.output.filtered_maf,
 		rules.filter_cnv_files.output.filtered_cnv,
-		'reference/CancerGeneCensus.tsv',
+		'databases/CancerGeneCensus.tsv',
 	output:
 		cases_table         = TABLESDIR + '/MERGED/{project}/cases_table.csv',
 		cases_table_metrics = TABLESDIR + '/MERGED/{project}/cases_table_metrics.csv'
@@ -85,9 +85,9 @@ rule check_gain_of_function_events:
 rule vulcanspot_annotation:
 	input:
 		TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv',
-		'reference/tcga/tcga-vulcan.tsv',
-		'reference/generated/vulcan_treatments_db.csv',
-		'reference/generated/genes_gscore.csv'
+		'databases/tcga/tcga-vulcan.tsv',
+		'databases/generated/vulcan_treatments_db.csv',
+		'databases/generated/genes_gscore.csv'
 	output:
 		TABLESDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv'
 	threads:
