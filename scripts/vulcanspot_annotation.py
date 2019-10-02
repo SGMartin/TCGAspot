@@ -31,7 +31,6 @@ def main(input_alterations: str, context_translation: str, vulcan_db: str,
 	vulcan_annotated_tcga.to_csv(where_to_save, sep=',', index=False)
 
 
-
 def translate_tcga_ccle_tissues(context_translation: str,
 								tcga_data: pd.DataFrame) -> pd.DataFrame:
 	'''
@@ -44,6 +43,7 @@ def translate_tcga_ccle_tissues(context_translation: str,
 	tcga_data['Context']      = tcga_data['Project'].map(context_translation)
 
 	return tcga_data
+
 
 def annotate_gscores(gscore_table:str, tcga_data:pd.DataFrame) -> pd.DataFrame:
 	'''
