@@ -1,9 +1,6 @@
 <h1 align="center">TCGASpot</h1>
 <img src=https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master>
-<p align="center">
-  <img width="600" height="480" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
-</p>
-
+[WIP]
 ## Introduction
 
 TCGASpot is a snakemake pipeline whose main purpose is to apply a pharmacogenomic tool called ***VulcanSpot*** to  large amounts of genomic data from ***The Cancer Genome Atlas*** (TCGA). Check VulcanSpot online at: http://vulcanspot.org/
@@ -23,4 +20,9 @@ TCGASpot is a snakemake pipeline whose main purpose is to apply a pharmacogenomi
 
 - Snakemake
 - Python's mygene package
+
+### Example DAG
+<p align="center">
+  <img width="480" height="200" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
+</p>
 
