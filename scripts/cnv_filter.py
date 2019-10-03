@@ -109,10 +109,13 @@ def annotate_cnv_from_metadata(cnv: pd.DataFrame, metadata:str) -> pd.DataFrame:
 	Annotates CNV using metadata. Returns a dataframe with aliquot and sample 
 	columns.
 	'''
+
 	# get sample barcode and alliquot
 	cnv_annotated 			 = get_barcode_from_sample(cnv, metadata)
-	cnv_annotated['aliquot'] = cnv_annotated['barcode'].str.split('-').str[3].str[2]
 
+	#cnv_annotated['aliquot'] = cnv_annotated['barcode'].str.split('-').str.get[3][2]
+	# This is actually faster in this case, really, and eats less RAM
+	cnv_annotated['aliquot'] = [x.split('-')[3][2] for x in cnv_annotated['barcode'].tolist()]
 	# get sample type from barcode
 	cnv_annotated['sample']	= translate_barcode_to_tumor(cnv_annotated['barcode'])
 	cnv_annotated.drop('barcode', axis=1, inplace=True)
@@ -128,6 +131,7 @@ def exclude_annotated_items(cnv: pd.DataFrame, annotations:str) -> pd.DataFrame:
 	are spared in certain cases based on notification category. Returns a
 	filtered dataframe
 	'''
+	
 	# Exclude both annotated aliquots and cases
 	flagged_items = pd.read_csv(annotations,
 								sep='\t',
@@ -161,6 +165,7 @@ def filter_cnv(cnv: pd.DataFrame) -> pd.DataFrame:
 	it drops neutrals and rename gains and loss to cnv_gain and cnv_loss. 
 	Returns a filtered dataframe.
 	'''
+	
 	#TODO: maybe count aliquots and get a consensus
 
 	# Get cases alterations from with multiple aliquots from the same sample
@@ -193,7 +198,7 @@ def get_barcode_from_sample(input_cnv: pd.DataFrame, metadata: str) -> pd.DataFr
 	Translates sample ID from metadatada to TCGA barcode and then extracts
 	original tissue and aliquot number.
 	'''
-
+	
 	with open(metadata) as metadata_file:
 		raw_metadata = json.load(metadata_file)
 	
@@ -238,6 +243,7 @@ def translate_barcode_to_tumor(barcode:str) -> str:
 	Translates tumor barcode to sample type according to
 	https://gdc.cancer.gov/resources-tcga-users/tcga-code-tables/sample-type-codes
 	'''
+	
 	CodesDictionary = {
         "01":"TP",
         "02":"TR",
@@ -262,7 +268,7 @@ def translate_barcode_to_tumor(barcode:str) -> str:
         "61":"XCL",
         "99":"99SH"
     }
-
+	
 	sampleCode = str(barcode).split('-')
 	doubleDigit = sampleCode[3][0:2]
 	
@@ -273,6 +279,7 @@ def generate_report_metrics(rcnv: pd.DataFrame, acnv: pd.DataFrame) -> pd.DataFr
 	Generates some metrics for each step performed. These are later saved
 	to a file.
 	'''
+
 	#  Report metrics #
 	raw_cases            = len(rcnv.columns) 
 	raw_cases 			-= 3 # accounting for the gene id, cytoband and ensembl cols.
