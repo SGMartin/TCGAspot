@@ -1,5 +1,5 @@
 <h1 align="center">TCGASpot</h1>
-
+<img src=https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master>
 <p align="center">
   <img width="600" height="480" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
 </p>
