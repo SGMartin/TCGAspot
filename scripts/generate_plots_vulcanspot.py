@@ -10,13 +10,15 @@ import pandas  as pd
 import numpy   as np
 import seaborn as sns
 
-def main(summary: str, save_to:str):
-	druggable_cases     	   = save_to + '/cases_druggable.svg'
-	alterations_count 		   = save_to + '/alterations_count'
-
+def main(summary: str, vulcan_treatments_db:str, save_to:str):
 
 	summary = pd.read_csv(summary, sep=',', low_memory=False)
 
+	druggable_cases     	   = save_to + '/cases_druggable.svg'
+	alterations_count 		   = save_to + '/alterations_count'
+	lincs_pandrugs             = save_to + '/drug_sources.svg'
+
+	report_lincs_pandrugs(summary, vulcan_treatments_db, lincs_pandrugs)
 	report_patients_alterations_boxplot(summary,alterations_count)
 	report_patient_summary(summary, druggable_cases)
 
@@ -104,6 +106,115 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 
 	plt.savefig(where_to_save, format='svg')
 
+
+
+def report_lincs_pandrugs(summary: pd.DataFrame, vulcan_treatments_db:str, where_to_save:str):
+	'''
+	Builds a report to show how many drugs are prescribed using LINCS vs
+	using PanDrugs on a project level. 
+	'''
+
+	# Get total patients count
+	patients_total  = summary.groupby('Project')['case_id'].nunique().reset_index()
+
+	drug_data = pd.read_csv(vulcan_treatments_db,
+							sep=',', 
+							usecols=['geneA', 'tissue', 'drug',
+									 'alteration','Dscore', 'LINCS']
+							)
+	
+	# Matched tissue first
+	matched_alterations = summary[summary['Vulcan_Local']]
+
+	# Drug patients
+	drugged_patients = pd.merge(matched_alterations,
+							    right=drug_data,
+								how='left',
+								left_on=['Hugo_Symbol', 'Consequence', 'Context'],
+								right_on=['geneA', 'alteration', 'tissue']
+								)
+	
+
+	drugged_patients['has_dscore'] = drugged_patients['Dscore'] >= 0.6
+	drugged_patients['has_lincs']  = drugged_patients['LINCS'] >= 0.9
+
+	drugged_patients.drop(labels=['geneA', 'tissue', 'Consequence',
+						   		  'Dscore', 'LINCS', 'Vulcan_Local',
+						   		  'Vulcan_Pancancer', 'gscore'],
+						   axis=1,
+						   inplace=True)
+	
+	# Build a frequency table
+	drugged_dscore = drugged_patients[drugged_patients['has_dscore']].groupby('Project')['case_id'].nunique()
+	drugged_lincs  = drugged_patients[drugged_patients['has_lincs']].groupby('Project')['case_id'].nunique()
+
+	patients_total.rename({'case_id':'total'}, axis='columns', inplace=True)
+
+	patients_total['PanDrugs'] = patients_total['Project'].map(drugged_dscore).fillna(0)
+	patients_total['Lincs']  = patients_total['Project'].map(drugged_lincs).fillna(0)
+
+	# relative counts and round up
+	patients_total['PanDrugs'] = patients_total['PanDrugs'] / patients_total['total'] * 100
+	patients_total['Lincs']  = patients_total['Lincs'] / patients_total['total'] * 100 
+
+	# totals removed as they are always 100
+	druggable_counts = patients_total.melt(id_vars='Project',
+						 				   var_name='Drug prescription',
+						 				   value_name='count',
+						 				   value_vars=['PanDrugs', 'Lincs']
+										   )
+	
+	druggable_counts['count'] = druggable_counts['count'].round(1)
+
+	# Create a new figure
+	fig, ax = plt.subplots(figsize=(7,13))
+	sns.set_style('whitegrid')
+
+	sns.set_color_codes('pastel')
+	figure_pancancer = sns.barplot(x='count',
+								   y='Project',
+								   data=druggable_counts[druggable_counts['Drug prescription'] == 'Lincs'],
+								   label='Lincs',
+								   color='b'
+								   )
+
+	sns.set_color_codes('muted')
+	figure_local = sns.barplot(
+						 x='count',
+						 y='Project',
+						 data=druggable_counts[druggable_counts['Drug prescription'] == 'PanDrugs'],
+						 label='PanDrugs',
+						 color='b'
+						 )
+
+	# Figure details
+	plt.title('Cases druggable by drug source')
+
+	# Re-order artists and handles so that matched tissue legend bar comes 
+	# before pancancer.
+	handles, labels = ax.get_legend_handles_labels()
+	handles = [handles[1], handles[0]]
+	labels  = [labels[1], labels[0]]
+
+	ax.legend(
+			  handles=handles,
+			  labels=labels,
+			  ncol=2,
+			  loc='lower center',
+			  bbox_to_anchor=(0.5,-0.1),
+			  frameon=True
+			  )
+
+	ax.set(xlim=(0,100),
+	       ylabel='TCGA tumor type', 
+	       xlabel='Fraction of cases'
+		   )
+
+	#sns.despine(left=True)
+
+	plt.savefig(where_to_save, format='svg')
+	
+
 #TODO: refactor this in two methods?
 def report_patients_alterations_boxplot(summary: pd.DataFrame, where_to_save:str):
 
@@ -176,4 +287,4 @@ def boxplot_alterations(data: pd.DataFrame, context:str, save_to:str):
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2])
+	main(sys.argv[1], sys.argv[2], sys.argv[3])

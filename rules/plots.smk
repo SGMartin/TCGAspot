@@ -16,11 +16,13 @@ rule generate_summary_plots:
 
 rule generate_vulcanspot_plots:
 	input:
-		TABLESDIR + '/summary.csv'
+		TABLESDIR + '/summary.csv',
+		'databases/generated/vulcan_treatments_db.csv'
 	output:
 		PLOTDIR + '/vulcanspot/cases_druggable.svg',
 		PLOTDIR + '/vulcanspot/alterations_count_local.svg',
-		PLOTDIR + '/vulcanspot/alterations_count_pancancer.svg'
+		PLOTDIR + '/vulcanspot/alterations_count_pancancer.svg',
+		PLOTDIR + '/vulcanspot/drug_sources.svg'
 	threads:1
 	shell:
 		"./scripts/generate_plots_vulcanspot.py {input} {PLOTDIR}/vulcanspot"
