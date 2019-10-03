@@ -171,15 +171,15 @@ def report_lincs_pandrugs(summary: pd.DataFrame, vulcan_treatments_db:str, where
 	sns.set_style('whitegrid')
 
 	sns.set_color_codes('pastel')
-	figure_pancancer = sns.barplot(x='count',
-								   y='Project',
-								   data=druggable_counts[druggable_counts['Drug prescription'] == 'Lincs'],
-								   label='Lincs',
-								   color='b'
-								   )
+	figure_lincs = sns.barplot(x='count',
+							   y='Project',
+							   data=druggable_counts[druggable_counts['Drug prescription'] == 'Lincs'],
+							   label='Lincs',
+							   color='b'
+							   )
 
 	sns.set_color_codes('muted')
-	figure_local = sns.barplot(
+	figure_pandrugs = sns.barplot(
 						 x='count',
 						 y='Project',
 						 data=druggable_counts[druggable_counts['Drug prescription'] == 'PanDrugs'],
