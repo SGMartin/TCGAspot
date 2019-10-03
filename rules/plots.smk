@@ -26,3 +26,13 @@ rule generate_vulcanspot_plots:
 	threads:1
 	shell:
 		"./scripts/generate_plots_vulcanspot.py {input} {PLOTDIR}/vulcanspot"
+
+rule generate_pandrugs_plots:
+	input:
+		TABLESDIR + '/summary.csv',
+		'databases/pandrugs/Pandrugs_Feb2018.tsv'
+	output:
+		PLOTDIR + '/pandrugs/cases_druggable.svg'
+	threads:1
+	shell:
+		"./scripts/pandrugs_annotation_plots.py {input} {PLOTDIR}/pandrugs"

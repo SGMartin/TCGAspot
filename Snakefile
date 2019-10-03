@@ -52,7 +52,8 @@ include: 'rules/plots.smk'
 rule all:
 	input:
 		PLOTDIR + '/summary/alterations_classified_0.8.svg',
-		PLOTDIR + '/vulcanspot/cases_druggable.svg'
+		PLOTDIR + '/vulcanspot/cases_druggable.svg',
+		PLOTDIR + '/pandrugs/cases_druggable.svg'
 		
 
 rule generate_cases_table:
