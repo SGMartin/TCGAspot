@@ -188,7 +188,7 @@ def report_lincs_pandrugs(summary: pd.DataFrame, vulcan_treatments_db:str, where
 						 )
 
 	# Figure details
-	plt.title('Cases druggable by drug source')
+	plt.title('Cases druggable by VulcanSpot: drug sources')
 
 	# Re-order artists and handles so that matched tissue legend bar comes 
 	# before pancancer.
@@ -210,8 +210,7 @@ def report_lincs_pandrugs(summary: pd.DataFrame, vulcan_treatments_db:str, where
 	       xlabel='Fraction of cases'
 		   )
 
-	#sns.despine(left=True)
-
+	sns.despine(left=True)
 	plt.savefig(where_to_save, format='svg')
 	
 
