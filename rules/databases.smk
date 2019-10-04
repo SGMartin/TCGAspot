@@ -12,7 +12,7 @@ rule rebuild_vulcan_database:
 
 rule rebuild_snp_array_dictionary:
 	input:
-		"databases/tcga/affy_SNP6.0_ensg.tsv"
+		ancient("databases/tcga/affy_SNP6.0_ensg.tsv")
 	output:
 		"databases/generated/affy_snp_6.0_translation.csv"
 	threads:
@@ -24,7 +24,7 @@ rule rebuild_snp_array_dictionary:
 
 rule rebuild_rnaseq_dictionary:
 	input:
-		"databases/tcga/RNAseq_transcripts.csv"
+		ancient("databases/tcga/RNAseq_transcripts.csv")
 	output:
 		"databases/generated/RNAseq_transcripts_translation.csv"
 	threads:
@@ -36,12 +36,12 @@ rule rebuild_rnaseq_dictionary:
 
 rule rebuild_gscore_database:
 	input:
-		"databases/gscore/hugo_all_genes.tsv",
-		"databases/gscore/TumorPortal.csv",
-		"databases/CancerGeneCensus.tsv",
-		"databases/gscore/srep02650-s3.csv",
-		"databases/gscore/gene_essentiality_score.tsv",
-		"databases/gscore/oncoscape_all_matrix_highscore.tsv"
+		ancient("databases/gscore/hugo_all_genes.tsv"),
+		ancient("databases/gscore/TumorPortal.csv"),
+		ancient("databases/CancerGeneCensus.tsv"),
+		ancient("databases/gscore/srep02650-s3.csv"),
+		ancient("databases/gscore/gene_essentiality_score.tsv"),
+		ancient("databases/gscore/oncoscape_all_matrix_highscore.tsv")
 	output:
 		"databases/generated/genes_gscore.csv"
 	threads:
