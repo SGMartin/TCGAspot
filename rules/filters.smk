@@ -10,7 +10,7 @@ rule filter_maf_files:
 	resources:
 		mem=get_resource('filter_maf_files', 'mem')
 	shell:
-		"./scripts/maf_filter.py {input} {output}"
+		"../scripts/maf_filter.py {input} {output}"
 
 rule filter_cnv_files:
 	input:
@@ -25,7 +25,7 @@ rule filter_cnv_files:
 	resources:
 		mem=get_resource('filter_cnv_files', 'mem')
 	shell:
-		"./scripts/cnv_filter.py {input} {output}"
+		"../scripts/cnv_filter.py {input} {output}"
 
 rule filter_mrna_files:
 	input:
@@ -39,5 +39,5 @@ rule filter_mrna_files:
 	resources:
 		mem=get_resource('filter_mrna_files', 'mem')
 	shell:
-		"./scripts/expression_filter.py {input} {output}"
+		"../scripts/expression_filter.py {input} {output}"
 	

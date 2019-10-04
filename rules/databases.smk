@@ -8,7 +8,7 @@ rule rebuild_vulcan_database:
 	resources:
 		mem=get_resource('rebuild_vulcan_database', 'mem')
 	script:
-		"./scripts/get_vulcan_database.py"
+		"../scripts/get_vulcan_database.py"
 
 rule rebuild_snp_array_dictionary:
 	input:
@@ -20,7 +20,7 @@ rule rebuild_snp_array_dictionary:
 	resources:
 		mem=get_resource('rebuild_snp_array_translation', 'mem')
 	script:
-		"./scripts/get_affy_translation.py"
+		"../scripts/get_affy_translation.py"
 
 rule rebuild_rnaseq_dictionary:
 	input:
@@ -32,7 +32,7 @@ rule rebuild_rnaseq_dictionary:
 	resources:
 		mem=get_resource('rebuild_rnaseq_dictionary', 'mem')
 	script:
-		"./scripts/get_rnaseq_translation.py"
+		"../scripts/get_rnaseq_translation.py"
 
 rule rebuild_gscore_database:
 	input:
@@ -49,4 +49,4 @@ rule rebuild_gscore_database:
 	resources:
 		mem=get_resource('rebuild_gscore_database', 'mem')
 	shell:
-		"./scripts/calculate_gscores.py {input} {output}"		
+		"../scripts/calculate_gscores.py {input} {output}"		

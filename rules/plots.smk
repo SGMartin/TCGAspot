@@ -12,7 +12,7 @@ rule generate_summary_plots:
 	resources:
 		mem=get_resource('generate_summary_plots', 'mem')
 	shell:
-		"./scripts/generate_summary_plots.py {input} {PLOTDIR}/summary"
+		"../scripts/generate_summary_plots.py {input} {PLOTDIR}/summary"
 
 rule generate_vulcanspot_plots:
 	input:
@@ -25,7 +25,7 @@ rule generate_vulcanspot_plots:
 		PLOTDIR + '/vulcanspot/drug_sources.svg'
 	threads:1
 	shell:
-		"./scripts/generate_plots_vulcanspot.py {input} {PLOTDIR}/vulcanspot"
+		"../scripts/generate_plots_vulcanspot.py {input} {PLOTDIR}/vulcanspot"
 
 rule generate_pandrugs_plots:
 	input:
@@ -35,4 +35,4 @@ rule generate_pandrugs_plots:
 		PLOTDIR + '/pandrugs/cases_druggable.svg'
 	threads:1
 	shell:
-		"./scripts/pandrugs_annotation_plots.py {input} {PLOTDIR}/pandrugs"
+		"../scripts/pandrugs_annotation_plots.py {input} {PLOTDIR}/pandrugs"
