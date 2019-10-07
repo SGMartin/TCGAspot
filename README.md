@@ -47,16 +47,16 @@ samples/
 ### Installation
 The following table is a glossary of all required packages. However, you do not
 have to manually install all of them by yourself!
-| Python package | Version                    | Description |
-| ------------- | ------------------------------ | ---- |
-|   matplotlib   | 3.1.1     | Python package: graphics library
-|   mygene  | 3.1.0   | Python package: annotation library
-|   numpy | 1.17.12 | Python package: vectoriced arrays library
-|   pandas | 0.25.1 | Python package: dataframe library
-|   python | 3.7.3 | Programming Language
-|   scipy | 1.3.1  | Python package: statistics library
-|   seaborn | 0.9.0 | Python package: graphics library
-|   snakemake | 5.4 | Python based workflow manager
+| Python package | Version | Description |
+| ---| --- | ---|
+|   matplotlib   | 3.1.1     | Python package: graphics library |
+|   mygene  | 3.1.0   | Python package: annotation library |
+|   numpy | 1.17.12 | Python package: vectoriced arrays library |
+|   pandas | 0.25.1 | Python package: dataframe library |
+|   python | 3.7.3 | Programming Language  |
+|   scipy | 1.3.1  | Python package: statistics library |
+|   seaborn | 0.9.0 | Python package: graphics library |
+|   snakemake | 5.4 | Python based workflow manager |
 
 **Only Python 3 and snakemake need to be installed**. Remaining dependencies can be managed
 either by:
