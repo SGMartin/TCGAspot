@@ -17,6 +17,26 @@ To that end, it retrieves single point mutation, copy number variation and mRNA 
 - Metadata from the whole download: needed to map alliquots to cases.
 - (Optional): Annotations.txt files included with previous data
 
+#### Input folder structure
+TCGASpot expects a certain input folder structure to be followed,  otherwise
+it will fail. Below is an example based on the test suite, located in .test/samples
+
+```bash
+samples/
+├── CNV
+│   └── UVM
+│       └── UVM.focal_score_by_genes.txt
+├── MAF
+│   └── UVM
+│       └── TCGA.UVM.mutect.6c7b01bc-b068-4e01-8b4d-0362f5959f65.DR-10.0.somatic.maf
+├── METADATA
+│   └── metadata.json
+└── MRNA
+    └── UVM
+        └── TCGA-UVM.htseq_fpkm.tsv
+```
+
+
 ### Output
 
 - A summary CSV table.
