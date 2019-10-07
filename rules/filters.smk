@@ -17,7 +17,7 @@ rule filter_maf_files:
 rule filter_cnv_files:
 	input:
 		get_cnv_file,
-		metadata = INDIR + '/METADATA/cnv_metadata.json',
+		metadata = INDIR + '/METADATA/metadata.json',
 		affy_db  = 'databases/generated/affy_snp_6.0_translation.csv'
 	output:
 		filtered_cnv 		 = TABLESDIR + '/CNV/{project}/{project}_cnv_filtered.csv',
@@ -35,7 +35,7 @@ rule filter_mrna_files:
 	input:
 		get_mrna_file,
 		mrna_db  = 'databases/generated/RNAseq_transcripts_translation.csv',
-		metadata = INDIR + '/METADATA/cnv_metadata.json'
+		metadata = INDIR + '/METADATA/metadata.json'
 	output:
 		filtered_expression = TABLESDIR + '/MRNA/{project}/{project}_expr_filtered.csv'
 	threads:
