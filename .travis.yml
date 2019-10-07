@@ -18,4 +18,4 @@ install:
 
 script:
   - source activate snakemake
-  - snakemake -n --use-conda --directory .test
+  - snakemake -j 3 --use-conda --directory .test
