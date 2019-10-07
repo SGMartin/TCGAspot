@@ -1,5 +1,4 @@
-.snakemake/log/
-.snakemake/metadata/
+.snakemake
 reference/CancerGeneCensus.tsv
 
 pan-tcga.svg
