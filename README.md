@@ -1,6 +1,5 @@
 <h1 align="center">TCGASpot</h1>
-<img src=https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master></img>
-<img src=https://img.shields.io/badge/snakemake-%E2%89%A55.4-brightgreen.svg?style=flat-square></img>
+<img src=https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master></img><img src=https://img.shields.io/badge/snakemake-%E2%89%A55.4-brightgreen.svg?style=flat-square></img>
 
 A complete pipeline summarising my Master's degree thesis analysis
 
