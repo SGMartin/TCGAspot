@@ -55,7 +55,7 @@ def main():
 
 	# clean inconsistent alterations
 	tcga_func_annotated = delete_inconsistent_alterations(tcga_conflicts_resolved)
-
+	
 	#TODO: these could be kept depending on user config
 	# Drop rows which won't be used anymore
 	tcga_func_annotated = tcga_func_annotated.drop(['Chromosome', 'Start_Position',
@@ -161,7 +161,7 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 			result = 'LoF'
 		
 		if is_missense:
-			if is_oncogene == True & (tcga_data['VAF'] >= 0.2):
+			if is_oncogene & (tcga_data['VAF'] >= 0.2):
 				result = 'GoF'
 			else:	#TODO: Maybe include ONLY missense ON suppressors
 				if tcga_data['VAF'] >= 0.7:
