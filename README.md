@@ -19,7 +19,7 @@ To that end, it retrieves single point mutation, copy number variation and mRNA 
 
 #### Input folder structure
 TCGASpot expects a certain input folder structure to be followed,  otherwise
-it will fail. Below is an example based on the test suite, located in .test/samples:
+it will fail. Below is an example based on the test suite, located in _.test/samples_:
 
 ```bash
 samples/
@@ -46,7 +46,7 @@ samples/
 
 - Snakemake v.5.4 or higher.
 
-A conda environment file (__tcgaspot.yaml__) can be found in __TCGASpot/envs/__. It contains a list
+A conda environment file (___tcgaspot.yaml___) can be found in _TCGASpot/envs/_. It contains a list
 of the complete set of additional packages needed to run the pipeline end to end. 
 You can either install it right away with:
 ```
