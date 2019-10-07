@@ -1,5 +1,7 @@
 <h1 align="center">TCGASpot</h1>
-<img src=https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master>
+<img src=https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master></img>
+<img src=https://img.shields.io/badge/snakemake-%E2%89%A55.4-brightgreen.svg?style=flat-square></img>
+
 A complete pipeline summarising my Master's degree thesis analysis
 
 ## Introduction
@@ -42,24 +44,41 @@ samples/
 - A summary CSV table.
 - Summary plots.
 
-### Dependencies
+### Installation
+The following table is a glossary of all required packages. However, you do not
+have to manually install all of them by yourself!
+| Python package | Version                    | Description |
+| ------------- | ------------------------------ | ---- |
+|   matplotlib   | 3.1.1     | Python package: graphics library
+|   mygene  | 3.1.0   | Python package: annotation library
+|   numpy | 1.17.12 | Python package: vectoriced arrays library
+|   pandas | 0.25.1 | Python package: dataframe library
+|   python | 3.7.3 | Programming Language
+|   scipy | 1.3.1  | Python package: statistics library
+|   seaborn | 0.9.0 | Python package: graphics library
+|   snakemake | 5.4 | Python based workflow manager
 
-- Snakemake v.5.4 or higher.
+**Only Python 3 and snakemake need to be installed**. Remaining dependencies can be managed
+either by:
 
-A conda environment file (___tcgaspot.yaml___) can be found in _TCGASpot/envs/_. It contains a list
-of the complete set of additional packages needed to run the pipeline end to end. 
-You can either install it right away with:
+- Running the pipeline letting snakemake handle dependencies using a conda directive (**RECOMMENDED**):
+
+```
+snakemake  --use-conda --jobs  <ncores> --resources mem_mb=<max_ram_to_use>
+```
+
+- (**Requires Conda**) Installing every dependency at once using conda and an environment file: (___tcgaspot.yaml___) which can be found in _TCGASpot/envs/_. It contains a list
+of the complete set of additional packages needed to run the pipeline end to end. Once conda is installed, open a terminal
+and type:
 ```
 conda env create -f /path/to/tcgaspot/envs/tcgaspot.yaml
 conda activate tcgaspot
 conda install snakemake
 snakemake --jobs <ncores>
 ```
-or you might run the pipeline letting snakemake handle it (**RECOMMENDED**):
 
-```
-snakemake  --use-conda --jobs  <ncores> --resources mem_mb=<max_ram_to_use>
-```
+
+
 
 ### Example DAG
 <p align="center">
