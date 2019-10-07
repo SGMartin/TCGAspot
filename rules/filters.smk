@@ -8,7 +8,7 @@ rule filter_maf_files:
 	threads:
 		get_resource('filter_maf_files', 'threads')
 	resources:
-		mem=get_resource('filter_maf_files', 'mem')
+		mem_mb=get_resource('filter_maf_files', 'mem_mb')
 	conda:
 		"../envs/tcgaspot.yaml"
 	script:
@@ -25,7 +25,7 @@ rule filter_cnv_files:
 	threads:
 		get_resource('filter_cnv_files', 'threads')
 	resources:
-		mem=get_resource('filter_cnv_files', 'mem')
+		mem_mb=get_resource('filter_cnv_files', 'mem_mb')
 	conda:
 		"../envs/tcgaspot.yaml"
 	script:
@@ -41,7 +41,7 @@ rule filter_mrna_files:
 	threads:
 		get_resource('filter_mrna_files', 'threads')
 	resources:
-		mem=get_resource('filter_mrna_files', 'mem')
+		mem_mb=get_resource('filter_mrna_files', 'mem_mb')
 	conda:
 		"../envs/tcgaspot.yaml"
 	script:

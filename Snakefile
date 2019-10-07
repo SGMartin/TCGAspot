@@ -25,6 +25,7 @@ def get_resource(rule,resource):
 	try:
 		return config["rules"][rule]["res"][resource]
 	except KeyError:
+		print(f'Failed to resolve resource config for {rule}/{resource}: using default parameters')
 		return config["rules"]["default"]["res"][resource]
 
 #TODO: refactor this
@@ -67,7 +68,7 @@ rule generate_cases_table:
 	threads:
 		get_resource('generate_cases_table', 'threads')
 	resources:
-		mem=get_resource('generate_cases_table','mem')
+		mem=get_resource('generate_cases_table','mem_mb')
 	conda:
 		"./envs/tcgaspot.yaml"
 	script:
@@ -79,9 +80,10 @@ rule check_gain_of_function_events:
 		rules.filter_mrna_files.output.filtered_expression,
 	output:
 		cases_table_corrected = TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv'
-	threads:1
+	threads:
+		get_resource('check_gain_of_function_events', 'threads')
 	resources:
-		mem=2048
+		mem_mb=get_resource('check_gain_of_function_events', 'mem_mb')
 	conda:
 		"./envs/tcgaspot.yaml"
 	script:
@@ -98,20 +100,21 @@ rule vulcanspot_annotation:
 	threads:
 		get_resource('vulcanspot_annotation', 'threads')
 	resources:
-		mem=get_resource('vulcanspot_annotation', 'mem')
+		mem=get_resource('vulcanspot_annotation', 'mem_mb')
 	conda:
 		"./envs/tcgaspot.yaml"
 	script:
 		"./scripts/vulcanspot_annotation.py"
 
-#TODO: config for this?
 rule generate_summary:
 	input:
 		expand(TABLESDIR + '/MERGED/{project}/cases_table_vulcan_annotated.csv', project=PROJECTS)
 	output:
 		summary = TABLESDIR + '/summary.csv'
+	threads:
+		get_resource('generate_summary', 'threads')
 	resources:
-		mem=2048
+		mem_mb=get_resource('generate_summary', 'mem_mb')
 	shell:
 		"awk 'NR == 1 || FNR > 1' {input} > {output}"
 

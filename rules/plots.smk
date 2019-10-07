@@ -10,11 +10,12 @@ rule generate_summary_plots:
 	threads:
 		get_resource('generate_summary_plots', 'threads')
 	resources:
-		mem=get_resource('generate_summary_plots', 'mem')
+		mem_mb=get_resource('generate_summary_plots', 'mem_mb')
 	conda:
 		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/generate_summary_plots.py"
+
 
 rule generate_vulcanspot_plots:
 	input:
@@ -25,7 +26,10 @@ rule generate_vulcanspot_plots:
 		PLOTDIR + '/vulcanspot/alterations_count_local.svg',
 		PLOTDIR + '/vulcanspot/alterations_count_pancancer.svg',
 		PLOTDIR + '/vulcanspot/drug_sources.svg'
-	threads:1
+	threads:
+		get_resource('generate_vulcanspot_plots', 'threads')
+	resources:
+		mem_mb=get_resource('generate_vulcanspot_plots', 'mem_mb')
 	conda:
 		"../envs/tcgaspot.yaml"
 	script:
@@ -37,7 +41,10 @@ rule generate_pandrugs_plots:
 		'databases/pandrugs/Pandrugs_Feb2018.tsv'
 	output:
 		PLOTDIR + '/pandrugs/cases_druggable.svg'
-	threads:1
+	threads:
+		get_resource('generate_pandrugs_plots', 'threads')
+	resources:
+		mem_mb=get_resource('generate_pandrugs_plots', 'mem_mb')
 	conda:
 		"../envs/tcgaspot.yaml"
 	script:

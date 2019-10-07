@@ -4,43 +4,69 @@ tablesdir: 'tables'
 plotdir  : 'plots'              
 logdir   : 'log/test'                                
 
+
+# Most of these rules are using python3 pandas vector operations, which are
+# single threaded. There is no advantage to more threads. Memory can
+# be tweaked though.
 rules:
     default:
         res:
             threads: 1
-            mem:  2048
-
-    # These rules are using python3 pandas vector operations, which are
-    # single threaded. There is no advantage to more threads. Memory can
-    # be tweaked though.
-
+            mem_mb:  4096 
+    
     rebuild_vulcan_database:      # Requires internet connection
-        threads: 1
-        mem:  2048
+        res:
+            threads: 1
+            mem_mb:  2048
     rebuild_snp_array_dictionary: # Requires internet connection
-        threads: 1
-        mem: 2048
+        res:
+            threads: 1
+            mem_mb: 1024
     rebuild_rnaseq_dictionary:    # Requires internet connection
-        threads: 1
-        mem: 2048
+        res:
+            threads: 1
+            mem_mb: 1024
     rebuild_gscore_database: 
-        threads: 1
-        mem: 2048
+        res:
+            threads: 1
+            mem_mb: 512
     filter_maf_files: 
-        threads: 1 
-        mem: 2048
+        res:
+            threads: 1 
+            mem_mb: 512
     filter_cnv_files:
-        threads: 1
-        mem: 2048
+        res:
+            threads: 1
+            mem_mb: 4096
     filter_mrna_files:
-        threads: 1
-        mem: 4096
+        res:
+            threads: 1
+            mem_mb: 4096
     generate_cases_table:
-        threads: 1
-        mem: 2048
+        res:
+            threads: 1
+            mem_mb: 1024
+    check_gain_of_function_events:
+        res:
+            threads: 1
+            mem_mb: 1500
     vulcanspot_annotation:
-        threads: 1
-        mem: 2048
+        res:
+            threads: 1
+            mem_mb: 1600
+    generate_summary:
+        res:
+            threads: 1
+            mem_mb: 100
     generate_summary_plots:
-        threads: 1
-        mem: 2048
+        res:
+            threads: 1
+            mem_mb: 2048
+    generate_pandrugs_plots:
+        res:
+            threads: 1
+            mem_mb: 1400
+    generate_vulcanspot_plots:
+        res:
+            threads: 1
+            mem_mb: 4096
