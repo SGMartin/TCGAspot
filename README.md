@@ -48,7 +48,7 @@ samples/
 The following table is a glossary of all required packages. However, you do not
 have to manually install all of them by yourself!
 | Python package | Version | Description |
-| ---| --- | ---|
+| --- | --- | --- |
 |   matplotlib   | 3.1.1     | Python package: graphics library |
 |   mygene  | 3.1.0   | Python package: annotation library |
 |   numpy | 1.17.12 | Python package: vectoriced arrays library |
