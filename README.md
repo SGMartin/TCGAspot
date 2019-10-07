@@ -75,7 +75,7 @@ and type:
 conda env create -f /path/to/tcgaspot/envs/tcgaspot.yaml
 conda activate tcgaspot
 conda install snakemake
-snakemake --jobs <ncores>
+snakemake --jobs <ncores> --resources mem_mb=<max_ram_to_use>
 ```
 
 
