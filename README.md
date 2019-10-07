@@ -1,5 +1,6 @@
-<h1 align="center">TCGASpot</h1>
-<img src=https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master></img><img src=https://img.shields.io/badge/snakemake-%E2%89%A55.4-brightgreen.svg?style=flat-square></img>
+<h1>TCGASpot</h1>
+
+[![Build Status](https://api.travis-ci.org/SGMartin/TCGAspot.svg?branch=master)](https://travis-ci.org/SGMartin/TCGAspot) [![Snakemake](https://img.shields.io/badge/snakemake-%E2%89%A55.4-brightgreen.svg?style=flat-square)](https://snakemake.bitbucket.io)
 
 A complete pipeline summarising my Master's degree thesis analysis
 
