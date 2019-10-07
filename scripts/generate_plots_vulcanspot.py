@@ -3,24 +3,29 @@
 VulcanSpot plots module. This module generate plots related to VulcanSpot
 drug prescription.
 """
-import sys
 
 import matplotlib.pyplot as plt
 import pandas  as pd
 import numpy   as np
 import seaborn as sns
 
-def main(summary: str, vulcan_treatments_db:str, save_to:str):
+def main():
+
+	## Snakemake I/O ##
+	summary 			 = snakemake.input[0]
+	vulcan_treatments_db = snakemake.input[1]
+
+	cases_druggable		 		= snakemake.output[0]
+	alterations_count_local		= snakemake.output[1]
+	alterations_count_pancancer = snakemake.output[2]
+	drug_sources				= snakemake.output[3]
+
 
 	summary = pd.read_csv(summary, sep=',', low_memory=False)
 
-	druggable_cases     	   = save_to + '/cases_druggable.svg'
-	alterations_count 		   = save_to + '/alterations_count'
-	lincs_pandrugs             = save_to + '/drug_sources.svg'
-
-	report_lincs_pandrugs(summary, vulcan_treatments_db, lincs_pandrugs)
-	report_patients_alterations_boxplot(summary,alterations_count)
-	report_patient_summary(summary, druggable_cases)
+	report_lincs_pandrugs(summary, vulcan_treatments_db, drug_sources)
+	report_patients_alterations_boxplot(summary,alterations_count_local, alterations_count_pancancer)
+	report_patient_summary(summary, cases_druggable)
 
 def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 	'''
@@ -215,7 +220,12 @@ def report_lincs_pandrugs(summary: pd.DataFrame, vulcan_treatments_db:str, where
 	
 
 #TODO: refactor this in two methods?
-def report_patients_alterations_boxplot(summary: pd.DataFrame, where_to_save:str):
+def report_patients_alterations_boxplot(summary: pd.DataFrame, save_local:str, save_pancancer:str):
+	'''
+	This method generates two plots: one counts the average number of druggable
+	alterations per patient in a matched tissue context and the other performs
+	the same count on a pan-cancer context.
+	'''
 
 	patients_alterations = summary.drop(['Variant_Classification', 'Role',
 										 'Context', 'copy_number','sample'
@@ -257,12 +267,12 @@ def report_patients_alterations_boxplot(summary: pd.DataFrame, where_to_save:str
 
 	boxplot_alterations(data=local_alt,
 						context='matched tissue',
-						save_to=(where_to_save + '_local.svg')
+						save_to=(save_local)
 						)
 	
 	boxplot_alterations(data=pancancer_alt,
 						context='pan-cancer',
-						save_to=(where_to_save + '_pancancer.svg')
+						save_to=(save_pancancer)
 						)
 
 
@@ -286,4 +296,4 @@ def boxplot_alterations(data: pd.DataFrame, context:str, save_to:str):
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3])
+	main()

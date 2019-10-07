@@ -9,23 +9,22 @@ or losses are removed.
 
 import json
 import os
-import sys
 
 import pandas as pd
 
 
-def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
+def main():
 
-	### INPUT ###
-	raw_cnv  = rcnv
-	metadata = metadata
-	affy_db  = affy_db
+	### SNAKEMAKE INPUT ###
+	input_cnv  	= snakemake.input[0]
+	metadata 	= snakemake.input[1]
+	affy_db  	= snakemake.input[2]
 
-	###  OUTPUT ###
-	where_to_save = save_as
-	metrics 	  = metrics_save_as
+	###  SNAKEMAKE OUTPUT ###
+	where_to_save = snakemake.output[0]
+	metrics 	  = snakemake.output[1]
 
-	raw_cnv = pd.read_csv(raw_cnv, sep='\t')
+	raw_cnv = pd.read_csv(input_cnv, sep='\t')
 
 	# Hugo and metadata Annot.
 	ensembl_cnv     = annotate_from_ensembl_to_hugo(raw_cnv, affy_db)
@@ -33,7 +32,7 @@ def main(rcnv, metadata, affy_db, save_as, metrics_save_as):
 
 	# Check if annotations.txt is present
 	# TODO: Log this
-	input_cnv_directory = os.path.dirname(rcnv)
+	input_cnv_directory = os.path.dirname(input_cnv)
 	annotation_file     = input_cnv_directory + '/annotations.txt'
 
 	if(os.path.exists(annotation_file)):
@@ -305,4 +304,4 @@ def generate_report_metrics(rcnv: pd.DataFrame, acnv: pd.DataFrame) -> pd.DataFr
 	return report
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+	main()

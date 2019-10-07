@@ -9,8 +9,8 @@ rule filter_maf_files:
 		get_resource('filter_maf_files', 'threads')
 	resources:
 		mem=get_resource('filter_maf_files', 'mem')
-	shell:
-		"../scripts/maf_filter.py {input} {output}"
+	script:
+		"../scripts/maf_filter.py"
 
 rule filter_cnv_files:
 	input:
@@ -24,8 +24,8 @@ rule filter_cnv_files:
 		get_resource('filter_cnv_files', 'threads')
 	resources:
 		mem=get_resource('filter_cnv_files', 'mem')
-	shell:
-		"../scripts/cnv_filter.py {input} {output}"
+	script:
+		"../scripts/cnv_filter.py"
 
 rule filter_mrna_files:
 	input:
@@ -38,6 +38,6 @@ rule filter_mrna_files:
 		get_resource('filter_mrna_files', 'threads')
 	resources:
 		mem=get_resource('filter_mrna_files', 'mem')
-	shell:
-		"../scripts/expression_filter.py {input} {output}"
+	script:
+		"../scripts/expression_filter.py"
 	

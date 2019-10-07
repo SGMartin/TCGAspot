@@ -6,13 +6,16 @@ do that it uses filtered expression data. In summary, a simple lookup is
 performed.
 """
 
-import sys
-
 import pandas as pd
 
 #TODO: This module should grow once metrics and other checks are added. 
 
-def main(cases_table: str, expression_data: str, where_to_save:str):
+def main():
+
+	## SNAKEMAKE I/O ## 
+	cases_table		= snakemake.input[0]
+	expression_data = snakemake.input[1]
+	where_to_save 	= snakemake.output[0]
 
 	# Load cases table for this project and its expression table
 	cases_table 	 = pd.read_csv(cases_table, sep=',')
@@ -76,4 +79,4 @@ def match_gof_to_expression(cases: pd.DataFrame, expression: pd.DataFrame) -> pd
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3])
+	main()

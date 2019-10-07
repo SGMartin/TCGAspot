@@ -6,14 +6,19 @@ Gene Census and attempts to predict the functional impact of each one based on
 VulcanSpot criteria.
 """
 
-import sys
-
 import pandas as pd
 
 pd.set_option('mode.chained_assignment', None) #TODO: line get_consensus_from_dupl
 
-def main(input_maf:str, input_cnv:str, cancer_census:str, where_to_save: str,
-		 where_to_save_metrics:str ):
+def main():
+	
+	## SNAKEMAKE I/O ##
+	input_maf 		= snakemake.input[0]
+	input_cnv		= snakemake.input[1]
+	cancer_census 	= snakemake.input[2]
+	
+	where_to_save 		  = snakemake.output[0]
+	where_to_save_metrics = snakemake.output[1]
 
 	# Loading input dataframes #
 	maf_to_merge = pd.read_csv(input_maf,
@@ -245,6 +250,4 @@ def generate_metrics(raw_tcga_data: pd.DataFrame,
 
 
 if __name__ == "__main__":
-	main(
-	     sys.argv[1], sys.argv[2], sys.argv[3],
-		 sys.argv[4], sys.argv[5])
+	main()

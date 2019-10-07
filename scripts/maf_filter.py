@@ -7,24 +7,24 @@ alterations with low (<30) depth or (<0.2) variant allele frequency are removed.
 """
 
 import os.path
-import sys
 
 import numpy  as np
 import pandas as pd
 
-def main(input_maf:str, alterations_save_as:str, metrics_save_as:str):
+def main():
 
-	raw_mutation_data =  input_maf
-	where_to_save 	  =  alterations_save_as
-	metrics			  =  metrics_save_as
+	# SNAKEMAKE INPUT #
+	raw_mutation_data =  snakemake.input[0]
+	where_to_save 	  =  snakemake.output[0]
+	metrics			  =  snakemake.output[1]
 	
-
+	# SNAKEMAKE OUTPUT #
 	mutation_data = load_dataframe(raw_mutation_data)
 	filtered_maf  = filter_quality_variants(mutation_data)
 
 	# Check if there is an annotations.txt file present nearby
 	# TODO: Log this
-	input_maf_directory = os.path.dirname(input_maf)
+	input_maf_directory = os.path.dirname(raw_mutation_data)
 	annotation_file     = input_maf_directory + '/annotations.txt'
 
 	if(os.path.exists(annotation_file)):
@@ -128,7 +128,7 @@ def filter_quality_variants(mutationData: pd.DataFrame) -> pd.DataFrame:
 	mutationData['VAF'] = mutationData['t_alt_count'] / mutationData['t_depth']
 
 	# Drop entries with VAF < 0.2. Vulcan requires this
-	mutationData = mutationData[mutationData['VAF'] >= 0.2]
+	mutationData = mutationData[mutationData['VAF'] >= 0.1]
 
 	# Drop unused columns
 
@@ -202,5 +202,5 @@ def translate_barcode_to_sample_type(barcode:str) -> str:
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3])
+	main()
 

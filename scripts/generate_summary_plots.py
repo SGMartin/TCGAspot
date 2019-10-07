@@ -4,14 +4,17 @@ Summary plot module: This scripts uses the seaborn package to generate various
 plots regarding alterations kept after all the pipeline has finished.
 '''
 
-import sys
-
 import matplotlib.pyplot as plt
 import numpy    as np
 import pandas  as pd 
 import seaborn as sns
 
-def main(summary: str, save_to:str):
+def main():
+
+	## SNAKEMAKE I/O ##
+	summary = snakemake.input[0]
+	save_to = snakemake.output[0:5]
+
 
 	summary = pd.read_csv(summary,
 						  sep=',',
@@ -25,7 +28,7 @@ def main(summary: str, save_to:str):
 	for i in ranges:	# it is really the fastest way to do this... geez
 		
 		alt_plots = summary.loc[summary['gscore'] >= i]
-		plot_name = f"{save_to}/alterations_classified_{i}.svg"
+		plot_name = save_to[ranges.index(i)]
 		report_gof_lof_alterations(alt_plots.copy(), plot_name)
 
 
@@ -79,7 +82,7 @@ def report_gof_lof_alterations(summary:pd.DataFrame, where_to_save: str):
 	plt.savefig(where_to_save, format='svg')
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2])
+	main()
 
 
 

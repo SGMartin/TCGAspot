@@ -23,7 +23,14 @@ from scipy.stats import zscore
 #TODO: Multisampling.
 #TODO: Prepare the filter for future annotations.txt file being published
 
-def main(raw_expression_data: str, rna_seq_dict:str, metadata:str, where_to_save:str):
+def main():
+
+	## SNAKEMAKE I/O ##
+
+	raw_expression_data = snakemake.input[0]
+	rna_seq_dict 		= snakemake.input[1]
+	metadata 			= snakemake.input[2]
+	where_to_save		= snakemake.output[0]
 
 	# Load expr data
 	raw_expression_data = pd.read_csv(raw_expression_data,
@@ -206,4 +213,4 @@ def translate_barcode_to_tumor(barcode:str) -> str:
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])	
+	main()	

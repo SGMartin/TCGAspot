@@ -6,14 +6,21 @@ run on an analysis basis, but to update the Gscore (for instance, if the sources
 of information change).
 '''
 
-import sys
-
 import pandas as pd
 import numpy  as np
 
-def main(gene_list, tumorportal, cancercensus,
-		 drivers, essenciality, oncoscape, where_to_save):
+def main():
 	
+	### SNAKEMAKE I/O ###
+	gene_list 		= snakemake.input[0]
+	tumorportal 	= snakemake.input[1]
+	cancercensus 	= snakemake.input[2]
+	drivers 		= snakemake.input[3]
+	essenciality 	= snakemake.input[4]
+	oncoscape		= snakemake.input[5]
+
+	where_to_save	= snakemake.output[0]
+
 	# get a list of genes
 	all_genes = get_gene_list(gene_list)
 
@@ -158,7 +165,4 @@ def get_scores_from_oncoscape(oncoscape:str) -> dict:
 
 
 if __name__ == "__main__":
-	main(sys.argv[1],sys.argv[2],sys.argv[3],
-		 sys.argv[4],sys.argv[5],sys.argv[6],sys.argv[7]
-		 )
-
+	main()

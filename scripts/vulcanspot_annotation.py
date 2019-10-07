@@ -7,14 +7,17 @@ relationships found on cell lines representative of the case's tumor OR to
 SLs relationships found on the pancancer cohor.
 """
 
-
-import sys
-
 import pandas as pd
 
-def main(input_alterations: str, context_translation: str, vulcan_db: str,
-		 gscore_table:str, where_to_save:str):
+def main():
 
+
+	## SNAKEMAKE INPUT/OUTPUT ##
+	input_alterations 	= snakemake.input[0]
+	context_translation = snakemake.input[1]
+	vulcan_db 			= snakemake.input[2]
+	gscore_table		= snakemake.input[3]
+	where_to_save 		= snakemake.output[0]
 
 	tcga_data   = pd.read_csv(input_alterations, sep=',')
 
@@ -121,4 +124,4 @@ def annotate_vulcan_data(vulcan_table: str,
 
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+	main()

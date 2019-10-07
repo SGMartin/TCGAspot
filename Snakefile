@@ -68,8 +68,8 @@ rule generate_cases_table:
 		get_resource('generate_cases_table', 'threads')
 	resources:
 		mem=get_resource('generate_cases_table','mem')
-	shell:
-		"./scripts/generate_patients_table.py {input} {output}"
+	script:
+		"./scripts/generate_patients_table.py"
 
 rule check_gain_of_function_events:
 	input:
@@ -80,8 +80,10 @@ rule check_gain_of_function_events:
 	threads:1
 	resources:
 		mem=2048
-	shell:
-		"./scripts/gain_of_function_correction.py {input} {output}"
+	conda:
+		"./envs/tcgaspot.yml"
+	script:
+		"./scripts/gain_of_function_correction.py"
 
 rule vulcanspot_annotation:
 	input:
@@ -95,8 +97,8 @@ rule vulcanspot_annotation:
 		get_resource('vulcanspot_annotation', 'threads')
 	resources:
 		mem=get_resource('vulcanspot_annotation', 'mem')
-	shell:
-		"./scripts/vulcanspot_annotation.py {input} {output}"
+	script:
+		"./scripts/vulcanspot_annotation.py"
 
 #TODO: config for this?
 rule generate_summary:

@@ -2,7 +2,6 @@
 """
 PanDrugs Annotation module:
 """
-import sys
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -11,12 +10,14 @@ import seaborn as sns
 
 
 #TODO: This could be added to vulcanspot plots
-def main(summary:str, pandrugs_db:str, where_to_save:str):
+def main():
 	'''
 
 	'''
-
-	where_to_save = where_to_save + '/cases_druggable.svg'
+	## SNAKEMAKE INPUT/OUTPUT ##
+	summary	      = snakemake.input[0]
+	pandrugs_db   = snakemake.input[1]
+	where_to_save = snakemake.output[0]	
 
 	pandrugs_db = pd.read_csv(pandrugs_db,
 							  sep='\t',
@@ -168,4 +169,4 @@ def main(summary:str, pandrugs_db:str, where_to_save:str):
 	plt.savefig(where_to_save, format='svg')
 
 if __name__ == "__main__":
-	main(sys.argv[1], sys.argv[2], sys.argv[3])
+	main()

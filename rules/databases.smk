@@ -48,5 +48,5 @@ rule rebuild_gscore_database:
 		get_resource('rebuild_gscore_database', 'threads')
 	resources:
 		mem=get_resource('rebuild_gscore_database', 'mem')
-	shell:
-		"../scripts/calculate_gscores.py {input} {output}"		
+	script:
+		"../scripts/calculate_gscores.py"		
