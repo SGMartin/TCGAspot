@@ -68,6 +68,8 @@ rule generate_cases_table:
 		get_resource('generate_cases_table', 'threads')
 	resources:
 		mem=get_resource('generate_cases_table','mem')
+	conda:
+		"./envs/tcgaspot.yaml"
 	script:
 		"./scripts/generate_patients_table.py"
 
@@ -81,7 +83,7 @@ rule check_gain_of_function_events:
 	resources:
 		mem=2048
 	conda:
-		"./envs/tcgaspot.yml"
+		"./envs/tcgaspot.yaml"
 	script:
 		"./scripts/gain_of_function_correction.py"
 
@@ -97,6 +99,8 @@ rule vulcanspot_annotation:
 		get_resource('vulcanspot_annotation', 'threads')
 	resources:
 		mem=get_resource('vulcanspot_annotation', 'mem')
+	conda:
+		"./envs/tcgaspot.yaml"
 	script:
 		"./scripts/vulcanspot_annotation.py"
 
