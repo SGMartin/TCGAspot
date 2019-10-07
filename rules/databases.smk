@@ -7,6 +7,8 @@ rule rebuild_vulcan_database:
 		get_resource('rebuild_vulcan_database', 'threads')
 	resources:
 		mem=get_resource('rebuild_vulcan_database', 'mem')
+	conda:
+		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/get_vulcan_database.py"
 
@@ -19,6 +21,8 @@ rule rebuild_snp_array_dictionary:
 		get_resource('rebuild_snp_array_translation', 'threads')
 	resources:
 		mem=get_resource('rebuild_snp_array_translation', 'mem')
+	conda:
+		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/get_affy_translation.py"
 
@@ -31,6 +35,8 @@ rule rebuild_rnaseq_dictionary:
 		get_resource('rebuild_rnaseq_dictionary', 'threads')
 	resources:
 		mem=get_resource('rebuild_rnaseq_dictionary', 'mem')
+	conda:
+		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/get_rnaseq_translation.py"
 
@@ -48,5 +54,7 @@ rule rebuild_gscore_database:
 		get_resource('rebuild_gscore_database', 'threads')
 	resources:
 		mem=get_resource('rebuild_gscore_database', 'mem')
+	conda:
+		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/calculate_gscores.py"		

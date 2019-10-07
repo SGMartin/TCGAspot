@@ -9,6 +9,8 @@ rule filter_maf_files:
 		get_resource('filter_maf_files', 'threads')
 	resources:
 		mem=get_resource('filter_maf_files', 'mem')
+	conda:
+		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/maf_filter.py"
 
@@ -24,6 +26,8 @@ rule filter_cnv_files:
 		get_resource('filter_cnv_files', 'threads')
 	resources:
 		mem=get_resource('filter_cnv_files', 'mem')
+	conda:
+		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/cnv_filter.py"
 
@@ -38,6 +42,8 @@ rule filter_mrna_files:
 		get_resource('filter_mrna_files', 'threads')
 	resources:
 		mem=get_resource('filter_mrna_files', 'mem')
+	conda:
+		"../envs/tcgaspot.yaml"
 	script:
 		"../scripts/expression_filter.py"
 	
