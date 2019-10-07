@@ -45,8 +45,6 @@ samples/
 - Summary plots.
 
 ### Installation
-The following table is a glossary of all required packages. However, you do not
-have to manually install all of them by yourself!
 
 | Python package | Version | Description |
 | --- | --- | --- |
@@ -59,8 +57,7 @@ have to manually install all of them by yourself!
 | seaborn | 0.9.0 | Python package: graphics library |
 | snakemake | 5.4 | Python based workflow manager |
 
-**Only Python 3 and snakemake need to be installed**. Remaining dependencies can be managed
-either by:
+The above table is a glossary of all required packages. However, you do not have to manually install all of them by yourself! **Only Python 3 and snakemake need to be installed**. Remaining dependencies can be managed either by:
 
 - Running the pipeline letting snakemake handle dependencies using a conda directive (**RECOMMENDED**):
 
