@@ -39,12 +39,12 @@ def main():
 									  )
 
 	zscore_filtered   = filter_by_zscore(raw_expression_data)
-	absolute_filtered = filter_absolute_values(raw_expression_data)
+	#absolute_filtered = filter_absolute_values(raw_expression_data)
 
-	filtered_expression = zscore_filtered.append(absolute_filtered, ignore_index=True)
-	filtered_expression.drop_duplicates(keep='first', inplace=True)
+	#filtered_expression = zscore_filtered.append(absolute_filtered, ignore_index=True)
+#	filtered_expression.drop_duplicates(keep='first', inplace=True)
 
-	expression_annotated_transcripts = filter_known_transcripts(filtered_expression, rna_seq_dict)
+	expression_annotated_transcripts = filter_known_transcripts(zscore_filtered, rna_seq_dict)
 	expression_metadata_annotated = annotate_from_metadata(expression_annotated_transcripts, metadata)
 
 	expression_metadata_annotated.to_csv(where_to_save, sep=',', index=False)
@@ -79,8 +79,8 @@ def filter_by_zscore(raw_data: pd.DataFrame) -> pd.DataFrame:
 						   var_name='aliquot',
 						   value_name='zscore')
 	
-	# Select those over 2
-	zscores = zscores[zscores['zscore'] > 2]
+	# Select those over 3: Cherisev 
+	zscores = zscores[zscores['zscore'] >= 3]
 
 	# drop column and return
 	zscores.drop('zscore', axis=1, inplace=True)
@@ -88,7 +88,7 @@ def filter_by_zscore(raw_data: pd.DataFrame) -> pd.DataFrame:
 	del valid_data
 	return zscores
 
-
+# DEPRECATED
 def filter_absolute_values(raw_data: pd.DataFrame) -> pd.DataFrame:
 	'''
 	Filters raw expression data, looking for transcripts whose expression
