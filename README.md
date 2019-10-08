@@ -59,7 +59,7 @@ samples/
 
 The above table is a glossary of all required packages. However, you do not have to manually install all of them by yourself! **Only Python 3 and snakemake need to be installed**. Remaining dependencies can be managed either by:
 
-- Running the pipeline letting snakemake handle dependencies using a conda directive (**RECOMMENDED**):
+- (**RECOMMENDED**) Running the pipeline letting snakemake handle dependencies using a conda directive:
 
 ```
 snakemake  --use-conda --jobs  <ncores> --resources mem_mb=<max_ram_to_use>
