@@ -47,6 +47,9 @@ def main():
 	expression_annotated_transcripts = filter_known_transcripts(zscore_filtered, rna_seq_dict)
 	expression_metadata_annotated = annotate_from_metadata(expression_annotated_transcripts, metadata)
 
+	# TODO: implement an exhaustive filter akin to cnv_filter
+	expression_metadata_annotated.drop_duplicates(inplace=True)
+
 	expression_metadata_annotated.to_csv(where_to_save, sep=',', index=False)
 
 

@@ -42,6 +42,10 @@ def match_gof_to_expression(cases: pd.DataFrame, expression: pd.DataFrame) -> pd
 	expression = expression[expression['aliquot'] == 'A']
 	expression.drop('aliquot', axis=1, inplace=True)
 
+	# TODO: handle duplicated transcripts arising from the fact that Ensembl.
+	# might map to more than one Hugo_GENE
+	expression = expression.drop_duplicates(keep='first')
+
 	# select GoF of interest
 	gofs	   = cases['Consequence'] == 'GoF'
 	absent_snv = cases['Variant_Classification'] == 'None'
