@@ -23,6 +23,11 @@ def main():
 
 	summary = pd.read_csv(summary, sep=',', low_memory=False)
 
+	#TODO Improve this by plotting multiple gscores or generating dynamics graphs
+	# Keep gscore >= 0.6 for these plots. Otherwise, there is little meaning...
+
+	summary = summary[summary['gscore'] >= 0.6]
+
 	report_lincs_pandrugs(summary, vulcan_treatments_db, drug_sources)
 	report_patients_alterations_boxplot(summary,alterations_count_local, alterations_count_pancancer)
 	report_patient_summary(summary, cases_druggable)
