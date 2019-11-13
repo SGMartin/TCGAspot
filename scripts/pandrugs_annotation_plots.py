@@ -52,8 +52,11 @@ def main():
 	pandrugs_present_CT  = tcga_data['Hugo_Symbol'].isin(pandrugs_db[CT_drug]['gene_symbol'])
 	pandrugs_present_FDA = tcga_data['Hugo_Symbol'].isin(pandrugs_db[FDA_drug]['gene_symbol'])
 
-	gain_or_unknown  = tcga_data['Consequence'] != 'LoF'
+	# Replaced for a more restrictive filter: only GoF will be considered
+	# gain_or_unknown  = tcga_data['Consequence'] != 'LoF'
 
+	# TODO: Reformat this variable name for consistency and clarity
+	gain_or_unknown = tcga_data['Consequence'] == 'GoF'
 
 	# Done as Pineiro et. al. 2018
 	tcga_data['PanDrugs_CT']  = np.logical_and(pandrugs_present_CT, gain_or_unknown)
