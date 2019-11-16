@@ -167,7 +167,7 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 			if is_cgc:
 				if is_oncogene & (tcga_data['VAF'] >= 0.2):
 					result = 'GoF'
-				if not is_oncogene & is_cgc & (tcga_data['VAF'] >= 0.7):
+				if (not is_oncogene) & is_cgc & (tcga_data['VAF'] >= 0.7):
 					result = 'LoF'
 			else:
 				result = 'Unknown'
