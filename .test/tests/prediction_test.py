@@ -23,7 +23,7 @@ def main(summary: pd.DataFrame):
 	assert summary[summary['Hugo_Symbol'] == 'CDKN2A']['Consequence'].all() == 'LoF', "CDKN2A missclassified"
 	assert summary[summary['Hugo_Symbol'] == 'FRAS']['Consequence'].all() == 'Unknown', "FRAS missclassified"
 	assert summary[summary['Hugo_Symbol'] == 'APC']['Consequence'].all() == 'Unknown', "APC missclassified"
-	assert summary[summary['Hugo_Symbol'] == 'TP53']['Consequence'].all() == 'GoF', "TP53 missclassified"
+	assert summary[summary['Hugo_Symbol'] == 'TP53']['Consequence'].all() == 'LoF', "TP53 missclassified"
 
 	print('Done')
 
