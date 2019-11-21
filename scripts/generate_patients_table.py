@@ -92,7 +92,6 @@ def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame
 	# Fill nas in copy_number and variant_classification due to merging.
 	merged_maf_cnv['Variant_Classification'].fillna(value='None', inplace=True)
 	merged_maf_cnv['copy_number'].fillna(value='None', inplace=True)
-	print(merged_maf_cnv)
 	return merged_maf_cnv
 
 def annotate_cancer_gene_census(cancer_census, merged_alterations) -> pd.DataFrame:
