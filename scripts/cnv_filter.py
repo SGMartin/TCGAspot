@@ -14,11 +14,12 @@ import pandas as pd
 
 
 def main():
-
+	
 	### SNAKEMAKE INPUT ###
 	input_cnv  	= snakemake.input[0]
 	metadata 	= snakemake.input[1]
 	affy_db  	= snakemake.input[2]
+	project     = snakemake.wildcards[0]
 
 	###  SNAKEMAKE OUTPUT ###
 	where_to_save = snakemake.output[0]
@@ -40,6 +41,9 @@ def main():
 
 	# filter CNV neutrals and multiple aliquots
 	filtered_cnv = filter_cnv(annotated_cnv)					
+
+	# Get project from file name and set it
+	filtered_cnv['Project'] = project
 
 	# SAVE RESULTS #
 	filtered_cnv.to_csv(where_to_save, sep=',', index=False)

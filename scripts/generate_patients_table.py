@@ -34,7 +34,8 @@ def main():
 	cnv_to_merge = pd.read_csv(input_cnv,
 							   sep=',',
 							   usecols=['Gene Symbol', 'case_id',
-							   		    'copy_number', 'sample'
+							   		    'copy_number', 'sample',
+										'Project'
 									   ],
 							   low_memory=False
 							   )
@@ -84,22 +85,14 @@ def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame
 	merged_maf_cnv =  maf.merge(
 							right=renamed_cnv,
 					        how='outer',
-						    left_on=['case_id', 'sample', 'Hugo_Symbol'],
-							right_on=['case_id','sample', 'Hugo_Symbol']
+						    left_on=['case_id', 'sample', 'Hugo_Symbol', 'Project'],
+							right_on=['case_id','sample', 'Hugo_Symbol', 'Project']
 							)
-		
-	# Fill NaN in Project column for cnv
-	cases_projects = maf.loc[:,['case_id', 'Project']]
-	cases_projects = cases_projects[~cases_projects.duplicated()] # keeps only first case entry
-
-	fill_dict = cases_projects.set_index('case_id')['Project'].to_dict()
-
-	merged_maf_cnv['Project'] = merged_maf_cnv['case_id'].map(fill_dict)
-
+	
 	# Fill nas in copy_number and variant_classification due to merging.
 	merged_maf_cnv['Variant_Classification'].fillna(value='None', inplace=True)
 	merged_maf_cnv['copy_number'].fillna(value='None', inplace=True)
-
+	print(merged_maf_cnv)
 	return merged_maf_cnv
 
 def annotate_cancer_gene_census(cancer_census, merged_alterations) -> pd.DataFrame:

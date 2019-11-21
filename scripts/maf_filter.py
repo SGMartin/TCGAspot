@@ -17,7 +17,7 @@ def main():
 	raw_mutation_data =  snakemake.input[0]
 	where_to_save 	  =  snakemake.output[0]
 	metrics			  =  snakemake.output[1]
-	
+
 	# SNAKEMAKE OUTPUT #
 	mutation_data = load_dataframe(raw_mutation_data)
 	filtered_maf  = filter_quality_variants(mutation_data)
@@ -79,15 +79,6 @@ def load_dataframe(input_file: str) -> pd.DataFrame:
 						   "Consequence"
 						  ]
 
-	split_project = input_file.split('.') #get project name
-
-	# search for project name based on relative location of "mutect"
-	# note that this will fail depending on dir names... but it's the
-	# best we can do
-	# TODO: SCAN for MUTECT, VARSCAN etc...
-	p_index 	  = split_project.index('mutect')
-	project_index = p_index - 1
-	project_name   = split_project[project_index]
 
 	raw_maf  = pd.read_csv(input_file,
 						   sep='\t',
@@ -96,7 +87,7 @@ def load_dataframe(input_file: str) -> pd.DataFrame:
 						   low_memory=False
 						   )
 
-	raw_maf['Project'] =  project_name
+	raw_maf['Project'] =  snakemake.wildcards[0]
 
 	return raw_maf
 
