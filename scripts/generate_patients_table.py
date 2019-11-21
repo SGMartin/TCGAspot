@@ -42,7 +42,7 @@ def main():
 
 	merged_alterations = merge_cnv_to_mutations(maf_to_merge, cnv_to_merge)
 
-	# Annotate with CGC and translate projects to CCLE tissues
+	# Annotate with CGC
 	annotated_tcga			 = annotate_cancer_gene_census(cancer_census,
 												   	       merged_alterations
 														   )
