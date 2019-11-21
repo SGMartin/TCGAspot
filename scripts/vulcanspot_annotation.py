@@ -64,8 +64,8 @@ def annotate_gscores(gscore_table:str, tcga_data:pd.DataFrame) -> pd.DataFrame:
 	# map is way faster for this
 	gscore_table = gscore_table['Gscore'].to_dict()
 
-	tcga_data['gscore'] = tcga_data['Hugo_Symbol'].map(gscore_table)
-
+	tcga_data['gscore'] = tcga_data['Hugo_Symbol'].map(gscore_table, na_action='ignore')
+	tcga_data['gscore'].fillna(0, inplace=True)
 	return tcga_data
 
 
