@@ -1,0 +1,15 @@
+# THIS IS A DUMMY TEST SAMPLE											
+# DATA IS NOT BIOLOGICALLY RELEVANT											
+# NOR MAKES ANY BIOLOGICAL SENSE											
+# THIS IS THE INPUT OF TCGASPOT											
+# TEST SUITE											
+Hugo_Symbol	Chromosome	Start_Position	End_Position	Variant_Classification	Tumor_Sample_Barcode	n_depth	t_ref_count	t_depth	t_alt_count	case_id	Consequence
+KRAS	12	4048	50130130	Missense_Mutation	TCGA-VD-AA8R-01A-11D-A39W-08	100	100	100	21	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	coding_sequence_variant
+CDKN2A	12	123123	3123213213123	Nonsense_Mutation	TCGA-VD-AA8R-01A-11D-A39W-08	100	101	100	72	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	coding_sequence_variant
+FRAS	12	23123213123	9999999999999	Missense_Mutation	TCGA-VD-AA8R-01A-11D-A39W-08	100	102	100	65	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	coding_sequence_variant
+BRAF	12	123123213123	2323232323232	Missense_Mutation	TCGA-VD-AA8R-01A-11D-A39W-09	20	103	100	100	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	coding_sequence_variant
+EGFR	12	32323232315	123232323232323	Missense_Mutation	TCGA-VD-AA8R-01A-11D-A39W-08	100	104	20	10	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	coding_sequence_variant
+KRAS	12	222222222222	2332323232323232	3'UTR	TCGA-VD-AA8R-01A-11D-A39W-08	100	100	100	100	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	3_prime_UTR_variant
+KRAS	12	12002222222	2321321323232323	Intron	TCGA-VD-AA8R-01A-11D-A39W-08	100	100	100	100	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	intron_variant
+TP53	17	123312323232	2323232323551515	Missense_Mutation	TCGA-VD-AA8R-01A-11D-A39W-08	100	100	100	71	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	coding_sequence_variant
+APC	17	12323232325666	999999999999	Missense_Mutation	TCGA-VD-AA8R-01A-11D-A39W-08	100	100	100	40	ebdabfcb-1c68-4ca1-8b7f-3ea9cdac3a6a	coding_sequence_variant
