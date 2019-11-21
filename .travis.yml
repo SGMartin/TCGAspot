@@ -18,4 +18,5 @@ install:
 
 script:
   - source activate snakemake
-  - snakemake -j 3 --use-conda --directory .test
+  - snakemake -j 3 --use-conda --directory .test tables/summary.csv
+  - python3 .test/test/prediction_test.py .test/tables/summary.csv
