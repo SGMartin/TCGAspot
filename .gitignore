@@ -3,3 +3,14 @@ reference/CancerGeneCensus.tsv
 
 pan-tcga.svg
 pan_tcga_projects.tsv
+.test/tables/summary.csv
+.test/tables/CNV/UVM/UVM_cnv_filtered.csv
+.test/tables/CNV/UVM/UVM_metrics.csv
+.test/tables/MAF/UVM/UVM_filtered.csv
+.test/tables/MAF/UVM/UVM_metrics.csv
+.test/tables/MERGED/UVM/cases_table_corrected.csv
+.test/tables/MERGED/UVM/cases_table_metrics.csv
+.test/tables/MERGED/UVM/cases_table_vulcan_annotated.csv
+.test/tables/MERGED/UVM/cases_table.csv
+.test/tables/MRNA/UVM/UVM_expr_filtered.csv
+.Rhistory

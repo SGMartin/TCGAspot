@@ -1,5 +1,5 @@
 projects : 'projects.tsv'                                      # TCGA projects to parse
-inputdir : '/home/sagarcia/Documents/TFM/RAW/PAN-TCGA'         # Where to look for said projects
+inputdir : '/raid/RAW/PAN-TCGA'                                # Where to look for said projects
 tablesdir: '/home/sagarcia/Documents/TFM/generated/tcga'       # Where to save generated tables
 plotdir  : '/home/sagarcia/Documents/TFM/generated/tcga/plots' # Where to save plots
 logdir   : 'log/test'                                          # Where to save events log.
@@ -45,10 +45,14 @@ rules:
         res:
             threads: 1
             mem_mb: 1024
+    perform_cnv_diff_expr:
+        res:
+            threads: 24
+            mem_mb: 50000
     check_gain_of_function_events:
         res:
             threads: 1
-            mem_mb: 1500
+            mem_mb: 1024
     vulcanspot_annotation:
         res:
             threads: 1

@@ -39,7 +39,7 @@ def get_cnv_file(wildcards):
 	return glob.glob(project_dir)
 
 def get_mrna_file(wildcards):
-	project_dir = f'{INDIR}/MRNA/' + wildcards.project + '/*htseq_fpkm.tsv'
+	project_dir = f'{INDIR}/MRNA/' + wildcards.project + '/*htseq_counts.tsv'
 	return glob.glob(project_dir)
 
 
@@ -55,13 +55,14 @@ rule all:
 		PLOTDIR + '/summary/alterations_classified_0.8.svg',
 		PLOTDIR + '/vulcanspot/cases_druggable.svg',
 		PLOTDIR + '/pandrugs/cases_druggable.svg'
-		
+		TABLESDIR + '/summary.csv'
 
 rule generate_cases_table:
 	input:
 		rules.filter_maf_files.output.filtered_maf,
 		rules.filter_cnv_files.output.filtered_cnv,
 		'databases/CancerGeneCensus.tsv',
+		'databases/generated/genes_gscore.csv'
 	output:
 		cases_table         = TABLESDIR + '/MERGED/{project}/cases_table.csv',
 		cases_table_metrics = TABLESDIR + '/MERGED/{project}/cases_table_metrics.csv'
@@ -74,18 +75,33 @@ rule generate_cases_table:
 	script:
 		"./scripts/generate_patients_table.py"
 
+rule perform_cnv_diff_expr:
+	input:
+		cases_table      = rules.generate_cases_table.output.cases_table,
+		expression_table = rules.filter_mrna_files.output.filtered_expression
+	output:
+		tested_cnv = TABLESDIR + '/MERGED/{project}/cnv_diff_expr.csv'
+	threads:
+		get_resource('perform_cnv_diff_expr', 'threads')
+	resources:
+		mem_mb=get_resource('perform_cnv_diff_expr', 'mem_mb')
+	conda:
+		"./envs/deseq2.yaml"
+	script:
+		"./scripts/cnv_diff_expr.R"
+
 rule check_gain_of_function_events:
 	input:
-		rules.generate_cases_table.output.cases_table,
-		rules.filter_mrna_files.output.filtered_expression,
+		cases_table      = rules.generate_cases_table.output.cases_table,
+		tested_cnv	     = rules.perform_cnv_diff_expr.output.tested_cnv
 	output:
-		cases_table_corrected = TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv'
+		cases_corrected = TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv'
 	threads:
 		get_resource('check_gain_of_function_events', 'threads')
 	resources:
 		mem_mb=get_resource('check_gain_of_function_events', 'mem_mb')
 	conda:
-		"./envs/tcgaspot.yaml"
+		"./envs/deseq2.yaml"
 	script:
 		"./scripts/gain_of_function_correction.py"
 
@@ -119,3 +135,12 @@ rule generate_summary:
 		"awk 'NR == 1 || FNR > 1' {input} > {output}"
 
 
+rule test:
+	input:
+		'databases/generated/vulcan_treatments_db.csv',
+		rules.generate_summary.output.summary
+	output:
+		TABLESDIR + '/test.csv'
+	threads: 20
+	script:
+		"./scripts/synthetic_letal_validation.py"

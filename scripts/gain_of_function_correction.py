@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Gain of function correction: This scripts attempts to check wether genes with
-a GoF predicted by a cnv_gain event are indeed overexpressed downstream. To
-do that it uses filtered expression data. In summary, a simple lookup is 
-performed.
+Gain of function correction: This scripts filters the table output by
+cnv_de_expr.R to check which cnv-GoF events were indeed overexpressed. Those
+not passing the threshold are reclassified as Unknown.
 """
 
 import pandas as pd
+pd.set_option('mode.chained_assignment', 'raise') #TODO: line get_consensus_from_dupl
+
 
 #TODO: This module should grow once metrics and other checks are added. 
 
@@ -31,54 +32,26 @@ def match_gof_to_expression(cases: pd.DataFrame, expression: pd.DataFrame) -> pd
 	are indeed present downstream in expression data. Returns a dataframe of
 	corrected events.
 	'''
-	# get rid of expression data not present in this project GoF set
-	genes_of_interest = cases[cases['Consequence'] == 'GoF']['Hugo_Symbol'].unique()
-	cases_of_interest = cases['case_id'].unique()
-
-	expression = expression[expression['Hugo_Symbol'].isin(genes_of_interest)]
-	expression = expression[expression['case_id'].isin(cases_of_interest)]	
-
-	# filter by aliquot A... for now
-	expression = expression[expression['aliquot'] == 'A']
-	expression.drop('aliquot', axis=1, inplace=True)
-
-	# TODO: handle duplicated transcripts arising from the fact that Ensembl.
-	# might map to more than one Hugo_GENE
-	expression = expression.drop_duplicates(keep='first')
-
-	# select GoF of interest
-	gofs	   = cases['Consequence'] == 'GoF'
-	absent_snv = cases['Variant_Classification'] == 'None'
-	has_cnv    = cases['copy_number'] == 'cnv_gain'
-
-	alterations_to_check = cases[gofs & absent_snv & has_cnv]
-
-	# perform a left join to check wether they are indeed overexpr.
-	overexpressed = pd.merge(left=alterations_to_check,
-							 right=expression,
-							 how='left',
-							 on=['Hugo_Symbol', 'case_id', 'sample'],
-							 suffixes=('','_2'),
-							 indicator=True
-							)
-
-	# _merge == 'both' 	    -> these cnv_gain are overexpressed
-	# _merge == 'left_only' -> present on cnv data but not overexpressed... apparently
-	# _merge == 'right_only -> remove for now, overexpressed data without cnv_gain events
-
-	overexpressed = overexpressed[~(overexpressed['_merge'] == 'right_only')]
-	unknown_cnvs  = overexpressed['_merge'] == 'left_only'
 	
-	overexpressed.loc[unknown_cnvs, 'Consequence'] = 'Unknown'	
-	
-	overexpressed.drop(labels=['_merge'], axis=1, inplace=True)
+	# Get rid of those cnv events with no significance or little log fold
+	# TODO: use cases and bias for more accurate class.
 
-	# remove checked alterations from original data
-	# TODO: Maybe this could be improved
+	is_significant 		   = expression['adj_pval'] > 0.05
+	is_expressed 		   = expression['log2fc'] >= 1
 
-	cases = cases[~(gofs & absent_snv & has_cnv)]
-	cases = cases.append(overexpressed, ignore_index=True)
+	genes_verified = expression[is_significant & is_expressed]['Hugo_Symbol']
 
+	# Select cases whose GoF class. comes from cnv only
+	is_gof   = cases['Consequence'] == 'GoF'
+	is_cnv   = cases['copy_number'] == 'cnv_gain'
+	no_other = cases['Variant_Classification'] == 'None'
+	is_valid = cases['Hugo_Symbol'].isin(genes_verified)
+
+	#Set their values
+	cases.loc[(is_gof & is_cnv & no_other), 'Consequence'] = 'Unknown'
+	cases.loc[(is_gof & is_cnv & no_other & is_valid), 'Consequence'] = 'GoF'
+
+	del expression
 	return cases
 
 

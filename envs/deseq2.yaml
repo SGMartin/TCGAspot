@@ -1,0 +1,12 @@
+name: deseq2
+channels:
+  - r
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base
+  - bioconductor-deseq2
+  - bioconductor-edger
+  - r-foreach
+  - r-doMC

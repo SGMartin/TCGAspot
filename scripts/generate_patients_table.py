@@ -4,11 +4,11 @@ Patientes table module: This script merges alterations from filtered MAF and CNV
 files on a cases basis. It then annotates all alterations using Cosmic's Cancer
 Gene Census and attempts to predict the functional impact of each one based on
 VulcanSpot criteria.
+
+g-score annotation has been moved here for the new expression correction.
 """
 
 import pandas as pd
-
-pd.set_option('mode.chained_assignment', None) #TODO: line get_consensus_from_dupl
 
 def main():
 	
@@ -16,6 +16,8 @@ def main():
 	input_maf 		= snakemake.input[0]
 	input_cnv		= snakemake.input[1]
 	cancer_census 	= snakemake.input[2]
+	gscore_table    = snakemake.input[3]
+
 	
 	where_to_save 		  = snakemake.output[0]
 	where_to_save_metrics = snakemake.output[1]
@@ -65,6 +67,9 @@ def main():
 							     					],
 							 						axis=1,
 							  					   )
+	# Annotate g-score
+	tcga_func_annotated = annotate_gscores(gscore_table, tcga_func_annotated)
+	
 	# SAVING #
 	tcga_func_annotated.to_csv(where_to_save, sep=',', index=False)
 	
@@ -171,7 +176,7 @@ def get_consensus_from_duplicates(tcga_data: pd.DataFrame) -> pd.DataFrame:
 	Retrieves genes with multiple hits and therefore multiple consequences
 	predictions and returns a consensus of all of them. Criteria is
 	LoF > GoF > Unknown meaning that a single LoF prediction overrides other
-	values and so on
+	values and so on.
 	'''
 	
 	# Drop cases where all predictions for a gene are the same
@@ -179,13 +184,13 @@ def get_consensus_from_duplicates(tcga_data: pd.DataFrame) -> pd.DataFrame:
 									  				'Project', 'sample',
 									  				'Consequence'
 									 				], 
-							 				 keep='first'
-							  				)
+							 				 keep='first',
+							  				).copy()
 
 	priorities = {'LoF': 2, 'GoF': 1, 'Unknown': 0}
-
-	pre_filtered['priority'] = pre_filtered['Consequence'].map(priorities)
 	
+	pre_filtered.loc[:,'priority'] = pre_filtered.loc[:,'Consequence'].map(priorities)
+
 	# Get row ID of those alterations with the highest priority after grouping
 	alts_to_keep = pre_filtered.groupby(['Hugo_Symbol', 'case_id',
 										 'Project', 'sample'
@@ -206,9 +211,30 @@ def delete_inconsistent_alterations(tcga_data: pd.DataFrame) -> pd.DataFrame:
 	is_GoF = tcga_data['Consequence'] == 'GoF'
 	is_TSG = tcga_data['Role'].str.contains('TSG')
 
-	tcga_cleared = tcga_data[~(is_GoF & is_TSG)]
+#TODO:test	tcga_cleared = tcga_data[~(is_GoF & is_TSG)]
 
-	return tcga_cleared
+	return tcga_data
+
+def annotate_gscores(gscore_table:str, tcga_data:pd.DataFrame) -> pd.DataFrame:
+	'''
+	This method uses the table provided as input to annotate the pandrugs gscore
+	of all genes present in input dataframe. Returns the same dataframe with a 
+	'gscore' column. 
+	'''
+
+	gscore_table = pd.read_csv(gscore_table,
+							   sep=',',
+							   index_col='Hugo_Symbol',
+							   usecols=['Hugo_Symbol', 'Gscore']
+							   )
+
+	# map is way faster for this
+	gscore_table = gscore_table['Gscore'].to_dict()
+
+	tcga_data['gscore'] = tcga_data['Hugo_Symbol'].map(gscore_table, na_action='ignore')
+	tcga_data['gscore'].fillna(0, inplace=True)
+	return tcga_data
+
 
 #TODO: This could be refactored taking into account the above method.
 def generate_metrics(raw_tcga_data: pd.DataFrame,
