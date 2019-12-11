@@ -36,10 +36,10 @@ def match_gof_to_expression(cases: pd.DataFrame, expression: pd.DataFrame) -> pd
 	# Get rid of those cnv events with no significance or little log fold
 	# TODO: use cases and bias for more accurate class.
 
-	is_significant 		   = expression['adj_pval'] > 0.05
+	is_significant 		   = expression['adj_pval'] <= 0.05
 	is_expressed 		   = expression['log2fc'] >= 1
 
-	genes_verified = expression[is_significant & is_expressed]['Hugo_Symbol']
+	genes_verified = expression.loc[(is_significant & is_expressed), 'Hugo_Symbol']
 
 	# Select cases whose GoF class. comes from cnv only
 	is_gof   = cases['Consequence'] == 'GoF'
