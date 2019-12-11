@@ -107,9 +107,19 @@ genes_of_interest <- cases_of_interest[high_gscore &
                                        not_other,
                                        c('Hugo_Symbol', 'case_id', 'Consequence')]
 
-remaining_genes <- length(unique(genes_of_interest$Hugo_Symbol))
+ # get a table of genes with unique samples and sample count
+genes_to_test <- aggregate(case_id ~ Hugo_Symbol,
+                           genes_of_interest,
+                           function(x) length(unique(x)))
 
-if (remaining_genes == 0){  
+colnames(genes_to_test) <- c('gene','count') 
+genes_to_test <- genes_to_test[order(-genes_to_test$count),] 
+  
+# Select genes with sample count > 5 and initialize results dataframe
+genes_to_test <- genes_to_test[genes_to_test$count >= 5, 'gene']
+
+
+if (length(genes_to_test) == 0){  
     #TODO: Refactor this
     # Generating empty dataframe for now, it won't crash downstream
     empty_data <- data.frame('Hugo_Symbol' = "", 
@@ -122,17 +132,6 @@ if (remaining_genes == 0){
      write.csv(x=empty_data, file=where_to_save, row.names = FALSE)
     
 }else{
-    # get a table of genes with unique samples and sample count
-    genes_to_test <- aggregate(case_id ~ Hugo_Symbol,
-                               genes_of_interest,
-                               function(x) length(unique(x)))
-   
-    colnames(genes_to_test) <- c('gene','count') 
-    genes_to_test <- genes_to_test[order(-genes_to_test$count),] 
-  
-    # Select genes with sample count > 5 and initialize results dataframe
-    genes_to_test <- genes_to_test[genes_to_test$count >= 5, 'gene']
-    
     print(paste(length(genes_to_test), 'genes will be tested for cnv DE'))
     
     # Loop over genes of interest to perform deseqs
