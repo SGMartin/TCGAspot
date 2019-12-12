@@ -46,10 +46,14 @@ rules:
         res:
             threads: 1
             mem_mb: 1024
+    perform_cnv_diff_expr:
+        res:
+            threads: 24
+            mem_mb: 50000
     check_gain_of_function_events:
         res:
             threads: 1
-            mem_mb: 1500
+            mem_mb: 1024
     vulcanspot_annotation:
         res:
             threads: 1
