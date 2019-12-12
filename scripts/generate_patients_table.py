@@ -101,14 +101,14 @@ def merge_cnv_to_mutations(maf: pd.DataFrame, cnv: pd.DataFrame) -> pd.DataFrame
 
 def annotate_cancer_gene_census(cancer_census, merged_alterations) -> pd.DataFrame:
 	"""
-	Annotate roles based on cancer gene census.
+	Annotate roles based on cancer gene census. 
 	"""
 	
 	cancer_gene_census = pd.read_csv(cancer_census,
 									 sep='\t',
 									 usecols=['Gene Symbol', 'Role in Cancer']
 								    )
-	
+
 	merged_alterations['CGC'] = merged_alterations['Hugo_Symbol'].isin(cancer_gene_census['Gene Symbol'])
 
 	cancer_gene_census['Role in Cancer'].fillna(value='None', inplace=True)
@@ -127,6 +127,9 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 	and VAF to predict alteration consequence based on VulcanSpot criteria.
 	Returns a dataframe where all alterations are classified either in GoF,
 	LoF or Unknown.
+
+	Note that VulcanSpot prioritizes tsg over oncogene as gene role
+	when both are present possible.
 	'''
 
 	truncated_protein = ['De_novo_Start_OutOfFrame', 'Frame_Shift_Del',
@@ -140,6 +143,7 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 	is_missense  = tcga_data['Variant_Classification'] == 'Missense_Mutation'
 	has_cnv 	 = tcga_data['copy_number'] != 'None'
 	is_oncogene  = 'oncogene' in tcga_data['Role']
+	is_tsg 		 = 'TSG' in tcga_data['Role']
 	is_cgc		 = tcga_data['CGC']
 
 	result = 'Unknown'
@@ -162,9 +166,9 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 		
 		if is_missense:
 			if is_cgc:
-				if is_oncogene & (tcga_data['VAF'] >= 0.2):
+				if (is_oncogene) & (not is_tsg) & (tcga_data['VAF'] >= 0.2):
 					result = 'GoF'
-				if (not is_oncogene) & is_cgc & (tcga_data['VAF'] >= 0.7):
+				if (not is_oncogene) & (is_tsg) & (tcga_data['VAF'] >= 0.7):
 					result = 'LoF'
 			else:
 				result = 'Unknown'
