@@ -128,8 +128,6 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 	Returns a dataframe where all alterations are classified either in GoF,
 	LoF or Unknown.
 
-	Note that VulcanSpot prioritizes tsg over oncogene as gene role
-	when both are present possible.
 	'''
 
 	truncated_protein = ['De_novo_Start_OutOfFrame', 'Frame_Shift_Del',
@@ -146,6 +144,11 @@ def annotate_gof_lof(tcga_data: pd.Series) -> str:
 	is_tsg 		 = 'TSG' in tcga_data['Role']
 	is_cgc		 = tcga_data['CGC']
 
+	# Note that VulcanSpot prioritizes tsg over oncogene as gene role
+	# when both are present possible.
+	if is_tsg & is_oncogene:
+		is_oncogene = False
+	
 	result = 'Unknown'
 
 	if has_cnv:
