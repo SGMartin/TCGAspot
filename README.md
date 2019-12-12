@@ -52,10 +52,11 @@ samples/
 | mygene  | 3.1.0   | Python package: annotation library |
 | numpy | 1.17.12 | Python package: vectoriced arrays library |
 | pandas | 0.25.1 | Python package: dataframe library |
-| python | 3.7.3 | Programming Language  |
+| python | 3.6.7 | Programming Language  |
 | scipy | 1.3.1  | Python package: statistics library |
 | seaborn | 0.9.0 | Python package: graphics library |
 | snakemake | 5.4 | Python based workflow manager |
+| R | 3.6.1 | Programming Language |
 | edgeR | 3.28.0 | Bioconductor package for RNA-seq DE |
 | DESeq2 | 1.26.0 | Bioconductor package for RNA-seq DE |
 | foreach | 1.4.4 | R package for parallel processing
