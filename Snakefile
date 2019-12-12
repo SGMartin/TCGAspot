@@ -52,9 +52,11 @@ include: 'rules/plots.smk'
 
 rule all:
 	input:
+		#expand(TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv', project=PROJECTS)
+		#TABLESDIR + '/test.csv'
 		PLOTDIR + '/summary/alterations_classified_0.8.svg',
 		PLOTDIR + '/vulcanspot/cases_druggable.svg',
-		PLOTDIR + '/pandrugs/cases_druggable.svg'
+		PLOTDIR + '/pandrugs/cases_druggable.svg',
 		TABLESDIR + '/summary.csv'
 
 rule generate_cases_table:
@@ -101,7 +103,7 @@ rule check_gain_of_function_events:
 	resources:
 		mem_mb=get_resource('check_gain_of_function_events', 'mem_mb')
 	conda:
-		"./envs/deseq2.yaml"
+		"./envs/tcgaspot.yaml"
 	script:
 		"./scripts/gain_of_function_correction.py"
 
