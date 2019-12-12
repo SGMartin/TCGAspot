@@ -18,13 +18,14 @@ def main(summary: pd.DataFrame):
 	FRAS   should be unknown <---- maf, not in CGC
 	APC    should be unknown <---- maf
 	TP53   should be LoF     <---- cnv
+	TP53   should be LoF     <----- missense, ambiguous role
 	'''
 	assert summary[summary['Hugo_Symbol'] == 'KRAS']['Consequence'].all() == 'GoF',   "KRAS missclassified"
 	assert summary[summary['Hugo_Symbol'] == 'CDKN2A']['Consequence'].all() == 'LoF', "CDKN2A missclassified"
 	assert summary[summary['Hugo_Symbol'] == 'FRAS']['Consequence'].all() == 'Unknown', "FRAS missclassified"
 	assert summary[summary['Hugo_Symbol'] == 'APC']['Consequence'].all() == 'Unknown', "APC missclassified"
 	assert summary[summary['Hugo_Symbol'] == 'TP53']['Consequence'].all() == 'LoF', "TP53 missclassified"
-
+	assert summary[summary['Hugo_Symbol'] == 'ATP1A1']['Consequence'].all() == 'LoF', "Ambiguous missclass."
 	print('Done')
 
 
