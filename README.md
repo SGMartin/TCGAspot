@@ -15,7 +15,7 @@ To that end, it retrieves single point mutation, copy number variation and mRNA 
 
 - Single point mutation files: Only MuTecT2 workflow files are supported at the moment.
 - Copy number variation files: Level 3, GISTIC gene level copy number score.
-- RNAseq mRNA expression data: RNAseq-HTSeq-FPKM from xenabrowser
+- RNAseq mRNA expression data: Raw HTSeq counts from xenabrowser
 - Metadata from the whole download: needed to map alliquots to cases.
 - (Optional): Annotations.txt files included with previous data
 
@@ -35,7 +35,7 @@ samples/
 │   └── metadata.json
 └── MRNA
     └── UVM
-        └── TCGA-UVM.htseq_fpkm.tsv
+        └── TCGA-UVM.htseq_counts.tsv
 ```
 
 
@@ -56,6 +56,10 @@ samples/
 | scipy | 1.3.1  | Python package: statistics library |
 | seaborn | 0.9.0 | Python package: graphics library |
 | snakemake | 5.4 | Python based workflow manager |
+| edgeR | latest | Bioconductor package for RNA-seq DE |
+| DESeq2 | latest | Bioconductor package for RNA-seq DE |
+| foreach | latest | R package for parallel processing
+| doMC | latest | R package for parallel processing 
 
 The above table is a glossary of all required packages. However, you do not have to manually install all of them by yourself! **Only Python 3 and snakemake need to be installed**. Remaining dependencies can be managed either by:
 
