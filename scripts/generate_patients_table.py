@@ -54,11 +54,8 @@ def main():
 														 )
 
 	# Resolve conflicts arising from genes with multiple alterations
-	tcga_conflicts_resolved = get_consensus_from_duplicates(annotated_tcga)
+	tcga_func_annotated = get_consensus_from_duplicates(annotated_tcga)
 
-	# clean inconsistent alterations
-	tcga_func_annotated = delete_inconsistent_alterations(tcga_conflicts_resolved)
-	
 	#TODO: these could be kept depending on user config
 	# Drop rows which won't be used anymore
 	tcga_func_annotated = tcga_func_annotated.drop(['Chromosome', 'Start_Position',
@@ -206,21 +203,6 @@ def get_consensus_from_duplicates(tcga_data: pd.DataFrame) -> pd.DataFrame:
 	
 	filtered = pre_filtered[alts_to_keep]
 	return filtered
-
-
-def delete_inconsistent_alterations(tcga_data: pd.DataFrame) -> pd.DataFrame:
-	'''
-	Delete rows where a GoF was predicted on a gene annotated as tumor suppressor
-	gene. These although rare (<1%) might happen due to how TCGA GISTIC-2 data
-	was generated.
-	'''
-
-	is_GoF = tcga_data['Consequence'] == 'GoF'
-	is_TSG = tcga_data['Role'].str.contains('TSG')
-
-#TODO:test	tcga_cleared = tcga_data[~(is_GoF & is_TSG)]
-
-	return tcga_data
 
 def annotate_gscores(gscore_table:str, tcga_data:pd.DataFrame) -> pd.DataFrame:
 	'''
