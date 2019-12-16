@@ -21,11 +21,8 @@ def main():
 
 	tcga_data   = pd.read_csv(input_alterations, sep=',')
 
-	# Get the Gscore of all genes.
-	tcga_gscore_annotated = annotate_gscores(gscore_table, tcga_data)
-
 	# Assign TCGA projects to a suitable CCLE context and annotate alterations
-	ccle_translated_tcga = translate_tcga_ccle_tissues(context_translation, tcga_gscore_annotated)
+	ccle_translated_tcga = translate_tcga_ccle_tissues(context_translation, tcga_data)
 	vulcan_annotated_tcga = annotate_vulcan_data(vulcan_db, ccle_translated_tcga)
 
 	del tcga_data
