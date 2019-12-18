@@ -21,11 +21,8 @@ def main():
 
 	tcga_data   = pd.read_csv(input_alterations, sep=',')
 
-	# Get the Gscore of all genes.
-	tcga_gscore_annotated = annotate_gscores(gscore_table, tcga_data)
-
 	# Assign TCGA projects to a suitable CCLE context and annotate alterations
-	ccle_translated_tcga = translate_tcga_ccle_tissues(context_translation, tcga_gscore_annotated)
+	ccle_translated_tcga = translate_tcga_ccle_tissues(context_translation, tcga_data)
 	vulcan_annotated_tcga = annotate_vulcan_data(vulcan_db, ccle_translated_tcga)
 
 	del tcga_data
@@ -47,26 +44,6 @@ def translate_tcga_ccle_tissues(context_translation: str,
 
 	return tcga_data
 
-
-def annotate_gscores(gscore_table:str, tcga_data:pd.DataFrame) -> pd.DataFrame:
-	'''
-	This method uses the table provided as input to annotate the pandrugs gscore
-	of all genes present in input dataframe. Returns the same dataframe with a 
-	'gscore' column. 
-	'''
-
-	gscore_table = pd.read_csv(gscore_table,
-							   sep=',',
-							   index_col='Hugo_Symbol',
-							   usecols=['Hugo_Symbol', 'Gscore']
-							   )
-
-	# map is way faster for this
-	gscore_table = gscore_table['Gscore'].to_dict()
-
-	tcga_data['gscore'] = tcga_data['Hugo_Symbol'].map(gscore_table, na_action='ignore')
-	tcga_data['gscore'].fillna(0, inplace=True)
-	return tcga_data
 
 
 def annotate_vulcan_data(vulcan_table: str,
