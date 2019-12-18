@@ -53,7 +53,7 @@ include: 'rules/plots.smk'
 rule all:
 	input:
 		#expand(TABLESDIR + '/MERGED/{project}/cases_table_corrected.csv', project=PROJECTS)
-		#TABLESDIR + '/test.csv'
+		TABLESDIR + '/synthetic_lethal.csv',
 		PLOTDIR + '/summary/alterations_classified_0.8.svg',
 		PLOTDIR + '/vulcanspot/cases_druggable.svg',
 		PLOTDIR + '/pandrugs/cases_druggable.svg',
@@ -137,12 +137,12 @@ rule generate_summary:
 		"awk 'NR == 1 || FNR > 1' {input} > {output}"
 
 
-rule test:
+rule test_synthetic_pairs:
 	input:
 		'databases/generated/vulcan_treatments_db.csv',
 		rules.generate_summary.output.summary
 	output:
-		TABLESDIR + '/test.csv'
+		TABLESDIR + '/synthetic_lethal.csv'
 	threads: 20
 	script:
 		"./scripts/synthetic_letal_validation.py"
