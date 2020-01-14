@@ -244,9 +244,6 @@ def report_patients_alterations_boxplot(summary: pd.DataFrame, save_local:str, s
 
 	patients_alterations = patients_alterations[in_local | in_pancancer]
 
-	# Drop duplicates: genes with multiple hits. We'll consider them a single
-	# target
-	patients_alterations.drop_duplicates(inplace=True)
 
 	patients_alterations = pd.pivot_table(data=patients_alterations,
 										  values=['Vulcan_Local','Vulcan_Pancancer'],
@@ -288,9 +285,10 @@ def boxplot_alterations(data: pd.DataFrame, context:str, save_to:str):
 	sns.set_style('whitegrid')
 	sns.set_color_codes('pastel')
 
-	boxplot = sns.boxplot(x='project',
+	boxplot = sns.barplot(x='project',
 						  y='count',
-						  data=data
+						  data=data,
+						  color='b'
 						 )
 
 	plt.title(f"Summary of patients druggable alterations: {context}")
