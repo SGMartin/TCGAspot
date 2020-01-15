@@ -35,7 +35,6 @@ rule filter_mrna_files:
 	input:
 		get_mrna_file,
 		mrna_db  = 'databases/generated/RNAseq_transcripts_translation.csv',
-		affy_db  = 'databases/generated/affy_snp_6.0_translation.csv',
 		metadata = INDIR + '/METADATA/metadata.json'
 	output:
 		filtered_expression = TABLESDIR + '/MRNA/{project}/{project}_expr_filtered.csv'

@@ -24,8 +24,7 @@ def main():
 
 	raw_xena_data     = snakemake.input[0]
 	rnaseq_annotation = snakemake.input[1]
-	affy_annotation   = snakemake.input[2]
-	metadata		  = snakemake.input[3]
+	metadata		  = snakemake.input[2]
 
 	where_to_save	  = snakemake.output[0]
 
@@ -36,8 +35,7 @@ def main():
 	annotated_xena = annotate_samples_to_cases(raw_xena_data, metadata)
 
 	collapsed_raw_xena = collapse_probes_to_cnv(raw_xena     = annotated_xena,
-												rnaseq_annot = rnaseq_annotation,
-												affy_annot   = affy_annotation
+												rnaseq_annot = rnaseq_annotation
 												)
 
 	raw_count_xena 	   = raw_counts_from_xena(logtransformed=collapsed_raw_xena)
@@ -129,9 +127,6 @@ def collapse_probes_to_cnv(raw_xena: pd.DataFrame,
 	# Drop probes with no hugo gene associated
 	raw_xena.dropna(axis='index', how='any', inplace=True)
 
-	# Keep probes present in affy 6.0 snp array
-	affy_probes = pd.read_csv(affy_annot, sep=',', usecols=['Gene Symbol'])
-#	filtered_xena = raw_xena[raw_xena['Hugo_Symbol'].isin(affy_probes['Gene Symbol'])]
 	filtered_xena = raw_xena
 	del affy_probes
 	return filtered_xena	
