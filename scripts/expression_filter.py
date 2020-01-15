@@ -103,9 +103,10 @@ def annotate_samples_to_cases(xena_data: pd.DataFrame, metadata:str) -> pd.DataF
 	
 	return xena_data_annotated
 
-
+# This method is not collapsing anymore, just annotating.
+# TODO: Rename it
 def collapse_probes_to_cnv(raw_xena: pd.DataFrame,
-						   rnaseq_annot:str, affy_annot:str) -> pd.DataFrame:
+						   rnaseq_annot:str) -> pd.DataFrame:
 	'''
 	This method annotates expression transcripts and keeps those whose
 	Hugo_Symbol matches affymetrix snp  6.0 array data including duplicates. 
@@ -128,7 +129,7 @@ def collapse_probes_to_cnv(raw_xena: pd.DataFrame,
 	raw_xena.dropna(axis='index', how='any', inplace=True)
 
 	filtered_xena = raw_xena
-	del affy_probes
+	
 	return filtered_xena	
 
 def raw_counts_from_xena(logtransformed: pd.DataFrame) -> pd.DataFrame:
