@@ -5,7 +5,6 @@
 A complete pipeline summarising my Master's degree thesis analysis
 
 ## Introduction
-[WIP]
 TCGASpot is a snakemake pipeline whose main purpose is to apply a pharmacogenomic tool called ***VulcanSpot*** to  large amounts of genomic data from ***The Cancer Genome Atlas*** (TCGA). Check VulcanSpot online at: http://vulcanspot.org/
 
 To that end, it retrieves single point mutation, copy number variation and mRNA expression data and reconstruct the genomic landscape of all patients of input project. It then classifies every alteration in Gain of Function (GoF), Loss of Function (LoF) or Unknown effect (Unknown) at gene level.
