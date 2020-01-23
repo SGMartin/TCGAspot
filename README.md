@@ -70,11 +70,12 @@ The above table is a glossary of all required packages. However, you do not have
 snakemake  --use-conda --jobs  <ncores> --resources mem_mb=<max_ram_to_use>
 ```
 
-- (**Requires Conda**) Installing every dependency at once using conda and an environment file: (___tcgaspot.yaml___) which can be found in _TCGASpot/envs/_. It contains a list
+- (**Requires Conda**) Installing every dependency at once using conda and both environment files: (___tcgaspot.yaml___, ___deseq2.yaml___) which can be found in _TCGASpot/envs/_. They contains a list
 of the complete set of additional packages needed to run the pipeline end to end. Once conda is installed, open a terminal
 and type:
 ```
 conda env create -f /path/to/tcgaspot/envs/tcgaspot.yaml
+conda env update -f /path/to/tcgaspot/envs/deseq2.yaml
 conda activate tcgaspot
 conda install snakemake
 snakemake --jobs <ncores> --resources mem_mb=<max_ram_to_use>
