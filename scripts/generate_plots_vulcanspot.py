@@ -60,7 +60,7 @@ def report_patient_summary(summary: pd.DataFrame, where_to_save: str):
 
 	# rounding to the units
 	totals['count'] = totals['count'].round(0)
-
+	
 	# renaming for easier plotting... better than handling matplotlib labels manually
 	label_dict = {
 				  'pancancer': 'Pan-cancer',
@@ -292,7 +292,7 @@ def boxplot_alterations(data: pd.DataFrame, context:str, save_to:str):
 						 )
 
 	plt.title(f"Summary of patients druggable alterations: {context}")
-	ax.set(xlabel='Project', ylabel='Patients druggable alterations')
+	ax.set(xlabel='TCGA tumor type', ylabel='Patients druggable alterations')
 
 	boxplot.set_xticklabels(boxplot.get_xticklabels(), rotation=30)
 	plt.savefig(save_to, format='svg')
