@@ -85,5 +85,5 @@ snakemake --jobs <ncores> --resources mem_mb=<max_ram_to_use>
 
 ### Example DAG
 <p align="center">
-  <img width="600" height="480" src="https://github.com/SGMartin/TCGAspot/blob/master/example_dag.svg">
+  <img width="600" height="480" src="https://gitlab.com/bu_cnio/TCGAspot/blob/master/example_dag.svg">
 </p>
