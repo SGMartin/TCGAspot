@@ -14,3 +14,5 @@ pan_tcga_projects.tsv
 .test/tables/MERGED/UVM/cases_table.csv
 .test/tables/MRNA/UVM/UVM_expr_filtered.csv
 .Rhistory
+tcgaspot.code-workspace
+.vscode/settings.json
