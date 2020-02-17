@@ -116,8 +116,8 @@ def annotate_cnv_from_metadata(cnv: pd.DataFrame, metadata:str) -> pd.DataFrame:
 	# get sample barcode and alliquot
 	cnv_annotated 			 = get_barcode_from_sample(cnv, metadata)
 
-	#cnv_annotated['aliquot'] = cnv_annotated['barcode'].str.split('-').str.get[3][2]
 	# This is actually faster in this case, really, and eats less RAM
+	
 	cnv_annotated['aliquot'] = [x.split('-')[3][2] for x in cnv_annotated['barcode'].tolist()]
 	# get sample type from barcode
 	cnv_annotated['sample']	= translate_barcode_to_tumor(cnv_annotated['barcode'])
