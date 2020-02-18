@@ -46,7 +46,7 @@ samples/
 
 ### Installation
 
-| Python package | Version | Description |
+| Package | Version | Description |
 | --- | --- | --- |
 | DESeq2 | 1.26.0 | Bioconductor package for RNA-seq DE |
 | doMC | 1.3.5 | R package for parallel processing 
